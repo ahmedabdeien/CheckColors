@@ -43,9 +43,9 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Main Nav Links */}
-            <Link to="/" label="" >Home</Link>
-            <Link to="/About" label="">About</Link>
-            <Link to="/Contact" label="" >Contact</Link>
+            <a href='/' label="" >Home</a>
+            <a href='/About' label="">About</a>
+            <a href="/Contact" label="" >Contact</a>
             
             {/* Services Flyout */}
             <div className="relative">
@@ -67,10 +67,10 @@ const Navbar = () => {
                       Available Services
                     </h3>
                     <div className="space-y-1 *:cursor-pointer flex flex-col ">
-                      <Link to="/Color-Palettes" >Color Explorer</Link>
-                      <Link to="/Contrast-Checker"  >Contrast Checker</Link>
-                      <Link to="/image-to-palette" >image to palette</Link>
-                      <Link to="/Generate-Palette"  >Generate Palette </Link>
+                      <a href="/Color-Palettes" >Color Explorer</a>
+                      <a href="/Contrast-Checker"  >Contrast Checker</a>
+                      <a href="/image-to-palette" >image to palette</a>
+                      <a  href="/Generate-Palette"  >Generate Palette </a>
                     </div>
                   </div>
                 </div>
