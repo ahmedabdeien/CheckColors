@@ -28,12 +28,23 @@ const SORT_OPTIONS = [
 ];
 
 // Helper functions
+
 const getContrastColor = (hexColor) => {
+ 
   const hex = hexColor.replace('#', '');
   const r = parseInt(hex.slice(0,2), 16);
   const g = parseInt(hex.slice(2,4), 16);
   const b = parseInt(hex.slice(4,6), 16);
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5 ? '#000000' : '#FFFFFF';
+  
+};
+const downloadImage = (dataUrl, filename) => {
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = dataUrl;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 const formatTimeAgo = (date) => {
@@ -46,27 +57,24 @@ const formatTimeAgo = (date) => {
 };
 
 // Sub-components
-const ColorSwatch = ({ color, onCopy }) => {
+const ColorSwatch = ({color, onCopy }) => {
     
   return (
     <motion.div 
-      className="flex-1 relative group"
+    onClick={() => onCopy(color)}
+      className="flex-1 relative group cursor-pointer"
       style={{ backgroundColor: color }}
       whileHover={{ flex: 2 }}
     >
       <button
-        onClick={() => onCopy(color)}
-        className="absolute bottom-2 right-2 p-1.5 rounded-full backdrop-blur-sm transition"
-        style={{ 
-          color: getContrastColor(color),
-          backgroundColor: 'rgba(255,255,255,0.1)'
-        }}
+            onClick={() =>  navigator.clipboard.writeText(color)}
+            className={`absolute bottom-2 right-[50%] translate-x-[50%] p-1.5 opacity-0 group-hover:opacity-100 `}
       >
-        <LuClipboard size={16} />
+        <LuClipboard size={16} style={{color: getContrastColor(color)}} />
       </button>
       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
         <span 
-          className="px-2 py-1 rounded-md text-sm font-medium shadow-sm"
+          className="px-2 py-1 rounded-md text-sm font-medium "
           style={{ 
             backgroundColor: color,
             color: getContrastColor(color)
@@ -90,7 +98,10 @@ const PaletteCard = React.memo(({ palette, darkMode, toggleLike, copyToClipboard
     >
       <div className="flex h-32">
         {palette.colors.map((color, index) => (
-          <ColorSwatch key={index} color={color} onCopy={copyToClipboard} />
+          <ColorSwatch 
+          key={index} 
+          color={color} 
+          onCopy={copyToClipboard}/>
         ))}
       </div>
       <div className={`p-4 ${darkMode ? 'border-t border-gray-700' : ''}`}>
@@ -145,10 +156,10 @@ const PaletteCard = React.memo(({ palette, darkMode, toggleLike, copyToClipboard
               />
             </button>
             <button 
-              onClick={() => downloadPalette(palette)}
-              className={`p-1.5 rounded-full ${
-                darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-              }`}
+               onClick={() => downloadPalette(palette)}
+               className={`p-1.5 rounded-full ${
+                 darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+               }`}
             >
               <LuDownload size={16} />
             </button>
@@ -176,6 +187,7 @@ const ColorPalettes = () => {
   const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
+
 
   // Data generation
   const generateRandomColor = useCallback(() => {
@@ -207,7 +219,55 @@ const ColorPalettes = () => {
       saved: false
     };
   }, [generateRandomColor]);
+  const createPaletteImage = (palette) => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+  
+    // Set canvas dimensions
+    canvas.width = 800;
+    canvas.height = 450;
+    const numColors = palette.colors.length;
+    const colorHeight = 350;
+    const sectionWidth = canvas.width / numColors;
+  
+    // Draw color blocks
+    palette.colors.forEach((color, i) => {
+      // Color area
+      ctx.fillStyle = color;
+      ctx.fillRect(i * sectionWidth, 0, sectionWidth, colorHeight);
+  
+      // Color text
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = getContrastColor(color);
+      ctx.fillText(
+        color.toUpperCase(),
+        i * sectionWidth + sectionWidth / 2,
+        colorHeight / 2
+      );
+    });
+  
+    // Draw info area
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, colorHeight, canvas.width, canvas.height - colorHeight);
+  
+    // Palette name
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '32px Arial';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(palette.name, 20, colorHeight + 50);
+  
+    // Author and likes
+    ctx.font = '18px Arial';
+    ctx.fillStyle = '#cccccc';
+    ctx.fillText(`By ${palette.author} • ❤️ ${palette.likes}`, 20, colorHeight + 90);
+  
+    return canvas.toDataURL('image/jpeg', 0.9);
+  };
 
+  
   // Data fetching
   useEffect(() => {
     const fetchPalettes = async () => {
@@ -245,11 +305,21 @@ const ColorPalettes = () => {
     setPalettes([newPalette, ...palettes]);
     showNotification('New palette created!', 'success');
   }, [generateRandomPalette , palettes]);
-
-  const copyToClipboard = (color) => {
+  
+  const copyToClipboard = useCallback((color) => {
     navigator.clipboard.writeText(color);
     showNotification(`${color} copied to clipboard!`, 'success');
-  };
+  }, []);
+
+
+  const downloadPalette = useCallback((palette) => {
+    const dataUrl = createPaletteImage(palette);
+    if (!dataUrl) return;
+    
+    const filename = `${palette.name.replace(/[^a-z0-9]/gi, '_')}_palette.jpg`;
+    downloadImage(dataUrl, filename);
+    showNotification(`${palette.name} downloaded!`, 'success');
+  }, []); // Added dependency
 
   const toggleLike = useCallback((id) => {
     setPalettes(palettes => palettes.map(palette => {
@@ -278,7 +348,25 @@ const ColorPalettes = () => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   }, []);
+  const sharePalette = useCallback((palette) => {
+    const shareData = {
+      title: `Color Palette: ${palette.name}`,
+      text: `Check out this ${palette.tags.join(', ')} color palette: ${palette.colors.join(', ')}`,
+      url: window.location.href,
+    };
 
+    if (navigator.share) {
+      navigator.share(shareData)
+        .catch(() => showNotification('Sharing cancelled', 'error'));
+    } else {
+      navigator.clipboard.writeText(
+        `Color Palette: ${palette.name}\n` +
+        `Colors: ${palette.colors.join(', ')}\n` +
+        `By ${palette.author} • Likes: ${palette.likes}`
+      );
+      showNotification('Palette copied to clipboard', 'success');
+    }
+  }, []);
   return (
     <div className={`min-h-screen font-sans transition-colors duration-200 ${
       darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'
@@ -286,20 +374,6 @@ const ColorPalettes = () => {
       {/* Header */}
       <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} sticky top-0 z-10`}>
         <div className="max-w-screen-xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center space-x-3 mb-4 md:mb-0">
-            <h1 className="font-bold text-2xl bg-gradient-to-r from-purple-600 to-blue-500 text-transparent bg-clip-text">
-              ColorPalettes
-            </h1>
-            <div className="hidden md:flex space-x-1">
-              {['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEEAD'].map((color, index) => (
-                <div 
-                  key={index} 
-                  className="w-4 h-4 rounded-full" 
-                  style={{ backgroundColor: color }}
-                />
-              ))}
-            </div>
-          </div>
           <div className="flex items-center space-x-4 w-full md:w-auto">
             <div className="relative flex-grow md:flex-grow-0">
               <LuSearch 
@@ -453,17 +527,18 @@ const ColorPalettes = () => {
             ) : (
               <div className={`${view === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'space-y-4'} gap-6`}>
                 {sortedPalettes.map(palette => (
-                  <PaletteCard 
-                    key={palette.id}
-                    palette={palette}
-                    darkMode={darkMode}
-                    toggleLike={toggleLike}
-                    copyToClipboard={copyToClipboard}
-                    toggleSave={toggleSave}
-                    downloadPalette={() => {}}
-                    sharePalette={() => {}}
-                  />
-                ))}
+          <PaletteCard 
+            key={palette.id}
+            palette={palette}
+            darkMode={darkMode}
+            toggleLike={toggleLike}
+            copyToClipboard={copyToClipboard} // Single color copy
+            // Full palette copy
+            toggleSave={toggleSave}
+            downloadPalette={downloadPalette}
+            sharePalette={sharePalette}
+          />
+        ))}
               </div>
             )}
           </>

@@ -10,7 +10,7 @@ import {
   FaShoppingCart
 } from 'react-icons/fa';
 import { MdExpandMore, MdExpandLess } from 'react-icons/md';
-
+import CheckColorsLogo from '../../assets/Check-Colors.png';
 const Navbar = () => {
   const [searchInput, setSearchInput] = useState('');
   const [flyoutOneOpen, setFlyoutOneOpen] = useState(false);
@@ -34,11 +34,8 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <a href="/" className="flex items-center -space-x-1 ">
-             <span className='w-4 h-4 bg-green-600 rounded border'></span>
-             <span className='w-4 h-4 bg-orange-600 rounded border'></span>
-             <span className='w-4 h-4 bg-blue-600 rounded border'></span>
-             <span className='w-4 h-4 bg-red-600 rounded border'></span>
+            <a href="/" >
+             <img className='w-16 ' src={CheckColorsLogo} alt="CheckColorsLogo" />
             </a>
           </div>
 
@@ -68,10 +65,11 @@ const Navbar = () => {
                     <h3 className="text-sm font-semibold text-gray-900 mb-2 pb-2 border-b">
                       Available Services
                     </h3>
-                    <div className="space-y-1">
-                      <FlyoutLink href="/ColorPaletteExplorer" label="Color Palette Explorer" />
-                      <FlyoutLink href="/ContrastChecker" label="Contrast Checker" />
-                      <FlyoutLink href="/Service3" label="Service 3" />
+                    <div className="space-y-1 *:cursor-pointer">
+                      <FlyoutLink href="/Color-Palettes" label="Color Explorer" />
+                      <FlyoutLink href="/Contrast-Checker" label="Contrast Checker" />
+                      <FlyoutLink href="/image-to-palette" label="image to palette" />
+                      <FlyoutLink href="/Generate-Palette " label="Generate Palette " />
                     </div>
                   </div>
                 </div>
@@ -129,9 +127,10 @@ const Navbar = () => {
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-1">
                 Services
               </h3>
-              <MobileNavLink href="/ColorPaletteExplorer" label="Color Palette Explorer" className="pl-6" />
-              <MobileNavLink href="/ContrastChecker" label="Contrast Checker" className="pl-6" />
-              <MobileNavLink href="/Service3" label="Service 3" className="pl-6" />
+              <MobileNavLink href="/Color-Palettes" label="Color Explorer" className="pl-6" />
+              <MobileNavLink href="/Contrast-Checker" label="Contrast Checker" className="pl-6" />
+              <MobileNavLink href="/image-to-palette" label="Image to palette" className="pl-6" />
+              <MobileNavLink href="/Generate-Palette " label="Generate Palette " className="pl-6" />
             </div>
           </div>
           

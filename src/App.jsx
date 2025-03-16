@@ -10,6 +10,8 @@ import ColorPaletteExplorer from './component/Services/ColorPaletteExplorer';
 import ContrastChecker from './component/Services/ContrastChecker';
 import Contact from './component/pages/Contact';
 import ColorPalettes from './component/pages/ColorPalettes';
+import ImageToPalette from './component/pages/ImageToPalette';
+import GeneratePalette from './component/pages/GeneratePalette ';
 
 function App() {
 
@@ -20,10 +22,12 @@ function App() {
   <Routes>
   <Route path="/" element={<Home />} />
   <Route path="/About" element={<About />} />
-  <Route path="/ColorPaletteExplorer" element={<ColorPaletteExplorer />} />
-  <Route path="/ContrastChecker" element={<ContrastChecker />} />
+  <Route path="/Contrast-Checker" element={<ContrastChecker />} />
   <Route path="/Contact" element={<Contact />} />
-  <Route path="/ColorPalettes" element={<ColorPalettes />} />
+  <Route path="/Color-Palettes" element={<ColorPalettes />} />
+  <Route path="/image-to-palette" element={<ImageToPalette />} />
+  <Route path="/Generate-Palette" element={<GeneratePalette/>} />
+
   <Route path="*" element={<NotFound />} />
   </Routes>
 

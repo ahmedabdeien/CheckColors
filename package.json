@@ -13,8 +13,10 @@
     "@tailwindcss/vite": "^4.0.14",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.5.0",
+    "node-vibrant": "^4.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.8",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.3.0",
     "react-toastify": "^11.0.5"
