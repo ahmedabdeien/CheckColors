@@ -35,17 +35,17 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
-            <a href="/" >
+            <Link to="/" >
              <img className='w-16 ' src={CheckColorsLogo} alt="CheckColorsLogo" />
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Main Nav Links */}
-            <a href='/' label="" >Home</a>
-            <a href='/About' label="">About</a>
-            <a href="/Contact" label="" >Contact</a>
+            <Link to='/' label="" >Home</Link>
+            <Link to='/About' label="">About</Link>
+            <Link to="/Contact" label="" >Contact</Link>
             
             {/* Services Flyout */}
             <div className="relative">
@@ -67,10 +67,10 @@ const Navbar = () => {
                       Available Services
                     </h3>
                     <div className="space-y-1 *:cursor-pointer flex flex-col ">
-                      <a href="/Color-Palettes" >Color Explorer</a>
-                      <a href="/Contrast-Checker"  >Contrast Checker</a>
-                      <a href="/image-to-palette" >image to palette</a>
-                      <a  href="/Generate-Palette"  >Generate Palette </a>
+                      <Link to="/Color-Palettes" >Color Explorer</Link>
+                      <Link to="/Contrast-Checker"  >Contrast Checker</Link>
+                      <Link to="/image-to-palette" >image to palette</Link>
+                      <Link  to="/Generate-Palette"  >Generate Palette </Link>
                     </div>
                   </div>
                 </div>
@@ -120,18 +120,18 @@ const Navbar = () => {
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 animate-fadeIn">
           <div className="pt-2 pb-3 px-4 space-y-1">
-            <MobileNavLink href="/" label="Home" icon={<FaHome className="h-5 w-5" />} />
-            <MobileNavLink href="/About" label="About" icon={<FaInfoCircle className="h-5 w-5" />} />
-            <MobileNavLink href="/Contact" label="Contact" icon={<FaPhone className="h-5 w-5" />} />
+            <Link to="/" icon={<FaHome className="h-5 w-5" />} >Home</Link>
+            <Link to="/About" icon={<FaInfoCircle className="h-5 w-5" />} >About</Link>
+            <Link to="/Contact" icon={<FaPhone className="h-5 w-5" />} >Contact</Link>
             
             <div className="border-t border-gray-200 pt-2 mt-2">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-1">
                 Services
               </h3>
-              <MobileNavLink href="/Color-Palettes" label="Color Explorer" className="pl-6" />
-              <MobileNavLink href="/Contrast-Checker" label="Contrast Checker" className="pl-6" />
-              <MobileNavLink href="/image-to-palette" label="Image to palette" className="pl-6" />
-              <MobileNavLink href="/Generate-Palette " label="Generate Palette " className="pl-6" />
+              <Link to="/Color-Palettes" className="pl-6" >Color Explorer</Link>
+              <Link to="/Contrast-Checker" className="pl-6" >Contrast Checker</Link>
+              <Link to="/image-to-palette" className="pl-6" >Image to palette</Link>
+              <Link to="/Generate-Palette" className="pl-6" >Generate Palette</Link>
             </div>
           </div>
           
