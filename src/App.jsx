@@ -1,12 +1,11 @@
 
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes  } from 'react-router-dom'
 import './App.css'
 import Home from './component/pages/Home';
 import About from './component/pages/About';
 import NotFound from './component/NotFound';
 import Navbar from './component/navbar/Navbar';
 import Footer from './component/Footer';
-import ColorPaletteExplorer from './component/Services/ColorPaletteExplorer';
 import ContrastChecker from './component/Services/ContrastChecker';
 import Contact from './component/pages/Contact';
 import ColorPalettes from './component/pages/ColorPalettes';
@@ -16,7 +15,7 @@ import GeneratePalette from './component/pages/GeneratePalette ';
 function App() {
 
 
-  return<BrowserRouter>
+  return<BrowserRouter> 
   <Navbar />
 
   <Routes>

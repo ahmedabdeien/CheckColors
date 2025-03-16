@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa';
 import { MdExpandMore, MdExpandLess } from 'react-icons/md';
 import CheckColorsLogo from '../../assets/Check-Colors.png';
+import { Link } from 'react-router-dom';
 const Navbar = () => {
   const [searchInput, setSearchInput] = useState('');
   const [flyoutOneOpen, setFlyoutOneOpen] = useState(false);
@@ -40,11 +41,11 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden md:flex items-center space-x-4">
             {/* Main Nav Links */}
-            <NavLink href="/" label="Home"  />
-            <NavLink href="/About" label="About"/>
-            <NavLink href="/Contact" label="Contact" />
+            <Link to="/" label="" >Home</Link>
+            <Link to="/About" label="">About</Link>
+            <Link to="/Contact" label="" >Contact</Link>
             
             {/* Services Flyout */}
             <div className="relative">
@@ -65,11 +66,11 @@ const Navbar = () => {
                     <h3 className="text-sm font-semibold text-gray-900 mb-2 pb-2 border-b">
                       Available Services
                     </h3>
-                    <div className="space-y-1 *:cursor-pointer">
-                      <FlyoutLink href="/Color-Palettes" label="Color Explorer" />
-                      <FlyoutLink href="/Contrast-Checker" label="Contrast Checker" />
-                      <FlyoutLink href="/image-to-palette" label="image to palette" />
-                      <FlyoutLink href="/Generate-Palette " label="Generate Palette " />
+                    <div className="space-y-1 *:cursor-pointer flex flex-col ">
+                      <Link to="/Color-Palettes" >Color Explorer</Link>
+                      <Link to="/Contrast-Checker"  >Contrast Checker</Link>
+                      <Link to="/image-to-palette" >image to palette</Link>
+                      <Link to="/Generate-Palette"  >Generate Palette </Link>
                     </div>
                   </div>
                 </div>
