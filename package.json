@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm install && npm install --prefix client && npm run build --prefix client",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
-
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.0.14",
