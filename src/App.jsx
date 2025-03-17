@@ -11,6 +11,7 @@ import Contact from './component/pages/Contact';
 import ColorPalettes from './component/pages/ColorPalettes';
 import ImageToPalette from './component/pages/ImageToPalette';
 import GeneratePalette from './component/pages/GeneratePalette ';
+import AiColors from './component/pages/AiColors';
 
 function App() {
 
@@ -26,6 +27,7 @@ function App() {
   <Route path="/Color-Palettes" element={<ColorPalettes />} />
   <Route path="/image-to-palette" element={<ImageToPalette />} />
   <Route path="/Generate-Palette" element={<GeneratePalette/>} />
+  <Route path="/Ai-Colors" element={<AiColors/>} />
 
   <Route path="*" element={<NotFound />} />
   </Routes>
