@@ -82,6 +82,8 @@ const Navbar = () => {
 
   const serviceLinks = [
     { path: '/Color-Palettes', label: 'Color Explorer', icon: <FaPalette /> },
+    { path: '/colors', label: 'Colors', icon: <FaPalette /> },
+    { path: '/ExplorerColor', label: 'Explorer Color', icon: <FaPalette /> },
     { path: '/Contrast-Checker', label: 'Contrast Checker', icon: <FaAdjust /> },
     { path: '/image-to-palette', label: 'Image to Palette', icon: <FaImage /> },
     { path: '/Generate-Palette', label: 'Generate Palette', icon: <FaRandom /> },

@@ -12,6 +12,8 @@ import ColorPalettes from './component/pages/ColorPalettes';
 import ImageToPalette from './component/pages/ImageToPalette';
 import GeneratePalette from './component/pages/GeneratePalette ';
 import AiColors from './component/pages/AiColors';
+import Colors from './component/pages/Colors';
+import ExplorerColor from './component/pages/ExplorerColor';
 
 function App() {
 
@@ -28,6 +30,8 @@ function App() {
   <Route path="/image-to-palette" element={<ImageToPalette />} />
   <Route path="/Generate-Palette" element={<GeneratePalette/>} />
   <Route path="/Ai-Colors" element={<AiColors/>} />
+  <Route path="/colors" element={<Colors/>} />
+  <Route path="/ExplorerColor" element={<ExplorerColor/>} />
 
   <Route path="*" element={<NotFound />} />
   </Routes>
