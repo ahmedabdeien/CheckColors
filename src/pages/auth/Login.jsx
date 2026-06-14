@@ -4,13 +4,17 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaPalette, FaArrowRight } from 'react-icons/fa6';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
+import CheckColorslogo from '../../assets/Check-Colors.png';
 
 const schema = z.object({
-  email: z.string().email('بريد إلكتروني غير صالح'),
-  password: z.string().min(6, 'كلمة المرور 6 أحرف على الأقل'),
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
+
+const LI_BLUE = '#0A66C2';
+const LI_BORDER = '#E0DFDC';
 
 export default function Login() {
   const { login } = useAuth();
@@ -28,89 +32,102 @@ export default function Login() {
       await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
-      toast.error(err.response?.data?.message || 'بيانات غير صحيحة');
+      toast.error(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Left panel - branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-purple-700 flex-col items-center justify-center p-12 text-white">
-        <div className="max-w-md text-center">
-          <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <FaPalette className="text-4xl text-white" />
-          </div>
-          <h1 className="text-4xl font-black mb-4">CheckColors</h1>
-          <p className="text-blue-100 text-lg">أداتك الاحترافية لإنشاء وإدارة الباليتات اللونية بالذكاء الاصطناعي</p>
-          <div className="mt-10 grid grid-cols-3 gap-4 text-center">
-            {[['+5K', 'باليت محفوظ'], ['100%', 'مجاني للبدء'], ['AI', 'ذكاء اصطناعي']].map(([v, l]) => (
-              <div key={l} className="bg-white/10 rounded-xl p-4">
-                <div className="text-2xl font-black">{v}</div>
-                <div className="text-blue-100 text-xs mt-1">{l}</div>
-              </div>
-            ))}
-          </div>
+    <div style={{ backgroundColor: '#F3F2EF', minHeight: '100vh' }} className="flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-6">
+          <Link to="/" className="inline-flex items-center gap-2">
+            <img src={CheckColorslogo} alt="CheckColors" className="w-10 h-10" />
+            <span className="text-xl font-bold" style={{ color: LI_BLUE }}>CheckColors</span>
+          </Link>
+          <p className="mt-3 text-lg font-semibold" style={{ color: '#000000E6' }}>
+            Sign in to your account
+          </p>
         </div>
-      </div>
 
-      {/* Right panel - form */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          <div className="lg:hidden flex items-center gap-2 justify-center mb-8">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
-              <FaPalette className="text-white text-xl" />
+        {/* Card */}
+        <div className="bg-white rounded-xl shadow-sm p-8" style={{ border: `1px solid ${LI_BORDER}` }}>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium mb-1.5" style={{ color: '#000000E6' }}>
+                Email or phone
+              </label>
+              <div className="relative">
+                <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#00000066' }} />
+                <input
+                  type="email" {...register('email')}
+                  className="w-full pl-9 pr-3 py-2.5 rounded-md text-sm outline-none transition-colors"
+                  style={{
+                    border: `1px solid ${errors.email ? '#CC1016' : '#B0B0B0'}`,
+                    color: '#000000E6',
+                  }}
+                  onFocus={e => !errors.email && (e.target.style.borderColor = LI_BLUE)}
+                  onBlur={e => !errors.email && (e.target.style.borderColor = '#B0B0B0')}
+                  placeholder="Email"
+                />
+              </div>
+              {errors.email && <p className="text-xs mt-1" style={{ color: '#CC1016' }}>{errors.email.message}</p>}
             </div>
-            <span className="text-2xl font-black text-gray-800">CheckColors</span>
+
+            {/* Password */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium" style={{ color: '#000000E6' }}>Password</label>
+                <a href="#" className="text-xs font-semibold" style={{ color: LI_BLUE }}>Forgot password?</a>
+              </div>
+              <div className="relative">
+                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-sm" style={{ color: '#00000066' }} />
+                <input
+                  type={showPass ? 'text' : 'password'} {...register('password')}
+                  className="w-full pl-9 pr-10 py-2.5 rounded-md text-sm outline-none"
+                  style={{ border: `1px solid ${errors.password ? '#CC1016' : '#B0B0B0'}`, color: '#000000E6' }}
+                  onFocus={e => !errors.password && (e.target.style.borderColor = LI_BLUE)}
+                  onBlur={e => !errors.password && (e.target.style.borderColor = '#B0B0B0')}
+                  placeholder="Password"
+                />
+                <button type="button" onClick={() => setShowPass(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#00000066' }}>
+                  {showPass ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+              {errors.password && <p className="text-xs mt-1" style={{ color: '#CC1016' }}>{errors.password.message}</p>}
+            </div>
+
+            {/* Submit */}
+            <button type="submit" disabled={loading}
+              className="w-full py-2.5 rounded-full text-white font-semibold text-sm transition-colors disabled:opacity-60"
+              style={{ backgroundColor: LI_BLUE }}
+              onMouseEnter={e => !loading && (e.currentTarget.style.backgroundColor = '#004182')}
+              onMouseLeave={e => !loading && (e.currentTarget.style.backgroundColor = LI_BLUE)}>
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Signing in...
+                </span>
+              ) : 'Sign in'}
+            </button>
+          </form>
+
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px" style={{ backgroundColor: LI_BORDER }} />
+            <span className="text-xs" style={{ color: '#00000066' }}>or</span>
+            <div className="flex-1 h-px" style={{ backgroundColor: LI_BORDER }} />
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-            <h2 className="text-2xl font-black text-gray-800 mb-1">مرحباً بعودتك</h2>
-            <p className="text-gray-500 text-sm mb-7">سجل دخولك للمتابعة</p>
-
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" dir="rtl">
-              <div>
-                <label className="text-gray-700 text-sm font-medium mb-1.5 block">البريد الإلكتروني</label>
-                <div className="relative">
-                  <FaEnvelope className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
-                  <input type="email" {...register('email')} dir="ltr"
-                    className={`w-full border rounded-xl pr-10 pl-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-gray-50 ${errors.email ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
-                    placeholder="example@email.com" />
-                </div>
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
-              </div>
-
-              <div>
-                <label className="text-gray-700 text-sm font-medium mb-1.5 block">كلمة المرور</label>
-                <div className="relative">
-                  <FaLock className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
-                  <input type={showPass ? 'text' : 'password'} {...register('password')} dir="ltr"
-                    className={`w-full border rounded-xl pr-10 pl-10 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-gray-50 ${errors.password ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
-                    placeholder="••••••••" />
-                  <button type="button" onClick={() => setShowPass(!showPass)}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                    {showPass ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
-              </div>
-
-              <button type="submit" disabled={loading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
-                {loading ? (
-                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <><span>دخول</span><FaArrowRight className="text-sm" /></>
-                )}
-              </button>
-            </form>
-
-            <p className="text-center text-gray-500 text-sm mt-6">
-              ليس لديك حساب؟{' '}
-              <Link to="/register" className="text-blue-600 hover:text-blue-700 font-semibold">إنشاء حساب مجاني</Link>
-            </p>
-          </div>
+          <p className="text-center text-sm" style={{ color: '#000000E6' }}>
+            New to CheckColors?{' '}
+            <Link to="/register" className="font-semibold" style={{ color: LI_BLUE }}>
+              Join now
+            </Link>
+          </p>
         </div>
       </div>
     </div>

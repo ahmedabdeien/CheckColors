@@ -1,176 +1,173 @@
-import { useState } from 'react';
-import { LuPalette, LuRocket, LuUsers, LuStar, LuDownload, LuHeart } from 'react-icons/lu';
-import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import {
+  FaPalette, FaWandMagicSparkles, FaArrowRight,
+  FaCircleHalfStroke, FaImage, FaShuffle, FaEye, FaStar,
+  FaPlay, FaBolt, FaUsers
+} from 'react-icons/fa6';
 
-const Home = () => {
-  const [email, setEmail] = useState('');
-  const [selectedPalette, setSelectedPalette] = useState(0);
+const LI_BLUE = '#0A66C2';
+const LI_BG = '#F3F2EF';
+const LI_BORDER = '#E0DFDC';
+const LI_TEXT = '#000000E6';
+const LI_MUTED = '#00000099';
 
-  const palettes = [
-    ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'],
-    ['#059669', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'],
-    ['#b91c1c', '#dc2626', '#ef4444', '#f87171', '#fca5a5'],
-  ];
+const palettes = [
+  { name: 'Ocean Blue',    colors: ['#0A66C2', '#1E88E5', '#42A5F5', '#90CAF9', '#BBDEFB'] },
+  { name: 'Forest Green',  colors: ['#057642', '#00A36C', '#2ECC71', '#A8D5BA', '#D4EDDA'] },
+  { name: 'Sunset Red',    colors: ['#CC1016', '#E53935', '#EF5350', '#FFCDD2', '#FCE4EC'] },
+  { name: 'Golden Hour',   colors: ['#915907', '#F57C00', '#FFA726', '#FFE0B2', '#FFF3E0'] },
+];
 
+const stats = [
+  { value: '50K+', label: 'Color Palettes' },
+  { value: '12K+', label: 'Active Designers' },
+  { value: '200+', label: 'AI Generations Daily' },
+  { value: '99%',  label: 'Satisfaction Rate' },
+];
+
+const features = [
+  { icon: FaPalette,           title: 'Color Explorer',     desc: 'Browse thousands of curated color palettes for every design need.', link: '/Color-Palettes' },
+  { icon: FaCircleHalfStroke,  title: 'Contrast Checker',   desc: 'Ensure WCAG accessibility compliance with real-time contrast analysis.', link: '/Contrast-Checker' },
+  { icon: FaWandMagicSparkles, title: 'AI Color Generator', desc: 'Generate perfect palettes instantly using artificial intelligence.', link: '/Ai-Colors' },
+  { icon: FaImage,             title: 'Image to Palette',   desc: 'Extract beautiful color schemes from any image in seconds.', link: '/image-to-palette' },
+  { icon: FaShuffle,           title: 'Palette Generator',  desc: 'Create harmonious color combinations with one click.', link: '/Generate-Palette' },
+  { icon: FaEye,               title: 'Color Vision',       desc: 'Explore and visualize colors across the full spectrum.', link: '/ExplorerColor' },
+];
+
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-purple-600 to-blue-500 text-white py-20 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-6xl font-bold mb-6"
-          >
-            Create Beautiful Color Palettes
-          </motion.h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto">
-            Discover, create, and share stunning color combinations for your next design project
-          </p>
-          <div className="flex flex-col md:flex-row gap-4 justify-center">
-            <button className="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-opacity-90 transition-all">
-              Get Started
-            </button>
-            <a href="/Color-Palettes">
-            <button className="border-2 border-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-purple-600 transition-all">
-              Explore Palettes
-            </button></a>
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
+
+      {/* Hero */}
+      <section className="bg-white border-b" style={{ borderColor: LI_BORDER }}>
+        <div className="max-w-6xl mx-auto px-4 py-14 md:py-20 flex flex-col lg:flex-row items-center gap-12">
+          <div className="flex-1 text-center lg:text-left">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full mb-5"
+              style={{ backgroundColor: '#EEF3F8', color: LI_BLUE }}>
+              <FaBolt className="text-[10px]" /> Professional Color Tools
+            </span>
+            <h1 className="text-4xl md:text-5xl font-bold leading-tight mb-5" style={{ color: LI_TEXT }}>
+              Create Beautiful<br />
+              <span style={{ color: LI_BLUE }}>Color Palettes</span><br />
+              with AI
+            </h1>
+            <p className="text-base md:text-lg mb-8 leading-relaxed max-w-lg" style={{ color: LI_MUTED }}>
+              Discover, create, and share stunning color combinations for your next design project. Powered by AI, built for professionals.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+              <Link to="/register"
+                className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-full text-white font-semibold text-sm"
+                style={{ backgroundColor: LI_BLUE }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#004182'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = LI_BLUE}>
+                Get started free <FaArrowRight />
+              </Link>
+              <Link to="/Color-Palettes"
+                className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-full font-semibold text-sm border"
+                style={{ borderColor: LI_BLUE, color: LI_BLUE }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#EEF3F8'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                <FaPlay className="text-xs" /> Explore palettes
+              </Link>
+            </div>
+          </div>
+
+          {/* Live Preview Card */}
+          <div className="w-full max-w-xs lg:max-w-sm">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
+              <div className="flex items-center justify-between px-4 py-3 border-b" style={{ borderColor: LI_BORDER }}>
+                <p className="text-sm font-semibold" style={{ color: LI_TEXT }}>Trending Today</p>
+                <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: '#EEF3F8', color: LI_BLUE }}>Live</span>
+              </div>
+              {palettes.map(({ name, colors }) => (
+                <div key={name} className="px-4 py-3 border-b last:border-0 hover:bg-gray-50 transition-colors cursor-pointer"
+                  style={{ borderColor: '#F3F2EF' }}>
+                  <p className="text-xs font-medium mb-2" style={{ color: LI_TEXT }}>{name}</p>
+                  <div className="flex gap-1 mb-1.5">
+                    {colors.map(c => (
+                      <div key={c} className="flex-1 h-7 rounded-sm" style={{ backgroundColor: c }} />
+                    ))}
+                  </div>
+                  <div className="flex gap-1">
+                    {colors.slice(0, 3).map(c => (
+                      <span key={c} className="text-[9px] font-mono" style={{ color: LI_MUTED }}>{c}</span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
-          {[
-            {
-              icon: <LuPalette className="w-12 h-12" />,
-              title: "Endless Inspiration",
-              description: "Explore thousands of beautiful color combinations"
-            },
-            {
-              icon: <LuRocket className="w-12 h-12" />,
-              title: "Easy Export",
-              description: "Export palettes to multiple formats in one click"
-            },
-            {
-              icon: <LuUsers className="w-12 h-12" />,
-              title: "Community Driven",
-              description: "Share and collaborate with other creatives"
-            }
-          ].map((feature, index) => (
-            <motion.div 
-              key={index}
-              whileHover={{ y: -5 }}
-              className="bg-white p-8 rounded-xl shadow-lg text-center"
-            >
-              <div className="text-purple-600 mb-4 flex justify-center">
-                {feature.icon}
-              </div>
-              <h3 className="text-xl font-bold mb-4">{feature.title}</h3>
-              <p className="text-gray-600">{feature.description}</p>
-            </motion.div>
+      {/* Stats */}
+      <section className="py-10 bg-white border-b" style={{ borderColor: LI_BORDER }}>
+        <div className="max-w-4xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          {stats.map(({ value, label }) => (
+            <div key={label}>
+              <div className="text-2xl md:text-3xl font-bold mb-1" style={{ color: LI_BLUE }}>{value}</div>
+              <div className="text-sm" style={{ color: LI_MUTED }}>{label}</div>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Trending Palettes */}
-      <section className="py-16 px-4 bg-white">
+      {/* Features */}
+      <section className="py-14 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-12">Trending Palettes</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            {palettes.map((colors, index) => (
-              <motion.div
-                key={index}
-                whileHover={{ scale: 1.05 }}
-                className="rounded-xl overflow-hidden shadow-lg cursor-pointer"
-                onClick={() => setSelectedPalette(index)}
-              >
-                <div className="flex h-32">
-                  {colors.map((color, colorIndex) => (
-                    <div 
-                      key={colorIndex}
-                      className="flex-1 relative group"
-                      style={{ backgroundColor: color }}
-                    >
-                      <div className="absolute bottom-2 right-2 text-xs font-mono text-white/80">
-                        {color}
-                      </div>
-                    </div>
-                  ))}
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2" style={{ color: LI_TEXT }}>Everything you need for color</h2>
+            <p className="text-sm" style={{ color: LI_MUTED }}>Professional tools designed for designers and developers</p>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {features.map(({ icon: Icon, title, desc, link }) => (
+              <Link key={title} to={link}
+                className="bg-white rounded-xl p-6 block hover:shadow-md transition-all group"
+                style={{ border: `1px solid ${LI_BORDER}` }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-4"
+                  style={{ backgroundColor: '#EEF3F8' }}>
+                  <Icon className="text-lg group-hover:scale-110 transition-transform" style={{ color: LI_BLUE }} />
                 </div>
-                <div className="p-4 bg-white">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold">Popular Palette #{index + 1}</h3>
-                    <div className="flex items-center gap-2">
-                      <LuHeart className="text-red-500" />
-                      <span>{(Math.random() * 500 + 100).toFixed(0)}</span>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+                <h3 className="font-semibold text-sm mb-1.5 group-hover:text-blue-700 transition-colors" style={{ color: LI_TEXT }}>{title}</h3>
+                <p className="text-xs leading-relaxed" style={{ color: LI_MUTED }}>{desc}</p>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-gray-50">
-        <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-4 gap-8 text-center">
-          {[
-            { number: '50K+', label: 'Active Users' },
-            { number: '1M+', label: 'Palettes Created' },
-            { number: '98%', label: 'Satisfaction Rate' },
-            { number: '150+', label: 'Countries' },
-          ].map((stat, index) => (
-            <motion.div 
-              key={index}
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              className="p-4"
-            >
-              <div className="text-4xl font-bold text-purple-600 mb-2">{stat.number}</div>
-              <div className="text-gray-600">{stat.label}</div>
-            </motion.div>
-          ))}
+      {/* Social Proof / CTA */}
+      <section className="py-14 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-white rounded-2xl p-10 text-center" style={{ border: `1px solid ${LI_BORDER}` }}>
+            <div className="flex items-center justify-center gap-1 mb-4">
+              {[...Array(5)].map((_, i) => <FaStar key={i} style={{ color: '#F5C518' }} />)}
+            </div>
+            <div className="flex -space-x-2 justify-center mb-5">
+              {['#0A66C2', '#057642', '#CC1016', '#915907', '#5B4FE8'].map((bg, i) => (
+                <div key={i} className="w-9 h-9 rounded-full border-2 border-white flex items-center justify-center text-white text-xs font-bold"
+                  style={{ backgroundColor: bg }}>
+                  {['A', 'B', 'C', 'D', 'E'][i]}
+                </div>
+              ))}
+            </div>
+            <h2 className="text-xl font-bold mb-2" style={{ color: LI_TEXT }}>
+              Join 12,000+ designers using CheckColors
+            </h2>
+            <p className="text-sm mb-6" style={{ color: LI_MUTED }}>
+              Start for free. No credit card required. Upgrade anytime.
+            </p>
+            <Link to="/register"
+              className="inline-flex items-center gap-2 px-8 py-2.5 rounded-full text-white font-semibold text-sm"
+              style={{ backgroundColor: LI_BLUE }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#004182'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = LI_BLUE}>
+              <FaUsers /> Create free account
+            </Link>
+            <p className="text-xs mt-3" style={{ color: LI_MUTED }}>Already have an account? <Link to="/login" style={{ color: LI_BLUE }} className="font-semibold">Sign in</Link></p>
+          </div>
         </div>
       </section>
-
-      {/* Newsletter CTA */}
-      <section className="py-16 bg-white">
-        <div className="max-w-xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6">Stay Updated</h2>
-          <p className="text-gray-600 mb-8">
-            Get weekly updates about new features and trending palettes
-          </p>
-          <form className="flex gap-4 max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-all"
-            >
-              Subscribe
-            </button>
-          </form>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-8">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-gray-400">
-            © 2023 ColorPalettes. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
-};
-
-export default Home;
+}

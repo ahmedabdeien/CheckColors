@@ -5,14 +5,20 @@ import api from '../../api/axios';
 import toast from 'react-hot-toast';
 import {
   FaTableCells, FaStar, FaUsers, FaCopy, FaRightFromBracket,
-  FaGear, FaBolt, FaArrowTrendUp, FaShieldHalved, FaCrown,
-  FaTrash, FaEye, FaPlus, FaChartBar
+  FaGear, FaBolt, FaShieldHalved, FaCrown, FaTrash, FaEye,
+  FaPlus, FaChartBar, FaPalette
 } from 'react-icons/fa6';
 
-const PLAN_BADGE = {
-  free:       { label: 'مجاني',      bg: 'bg-gray-100',    text: 'text-gray-600' },
-  pro:        { label: 'Pro',         bg: 'bg-blue-100',    text: 'text-blue-700' },
-  enterprise: { label: 'Enterprise', bg: 'bg-purple-100',  text: 'text-purple-700' },
+const LI_BLUE = '#0A66C2';
+const LI_BG = '#F3F2EF';
+const LI_BORDER = '#E0DFDC';
+const LI_TEXT = '#000000E6';
+const LI_MUTED = '#00000099';
+
+const PLAN_STYLE = {
+  free:       { label: 'Free',       bg: '#F3F2EF',  color: '#00000099'  },
+  pro:        { label: 'Pro',        bg: '#EEF3F8',  color: LI_BLUE      },
+  enterprise: { label: 'Enterprise', bg: '#F5F0FF',  color: '#5B4FE8'    },
 };
 
 export default function Dashboard() {
@@ -28,240 +34,308 @@ export default function Dashboard() {
   }, []);
 
   const deletePalette = async (id) => {
-    if (!confirm('حذف الباليت؟')) return;
+    if (!confirm('Delete this palette?')) return;
     await api.delete(`/palettes/${id}`);
     setPalettes(p => p.filter(x => x._id !== id));
-    toast.success('تم الحذف');
+    toast.success('Palette deleted');
   };
 
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referrals?.referralLink || '');
-    toast.success('تم نسخ رابط الإحالة!');
+    toast.success('Referral link copied!');
   };
 
   const plan = user?.subscription?.plan || 'free';
-  const badge = PLAN_BADGE[plan];
+  const planStyle = PLAN_STYLE[plan];
 
-  const stats = [
-    { icon: FaTableCells, label: 'باليتات محفوظة', value: palettes.length, sub: plan === 'free' ? '/ 10' : '∞', color: 'text-blue-600', bg: 'bg-blue-50' },
-    { icon: FaBolt,       label: 'توليدات AI',     value: user?.aiGenerations || 0, sub: plan === 'free' ? '/ 5 شهرياً' : '∞', color: 'text-yellow-600', bg: 'bg-yellow-50' },
-    { icon: FaUsers,      label: 'إحالات',         value: user?.referralCount || 0, sub: 'مستخدم', color: 'text-green-600', bg: 'bg-green-50' },
-    { icon: FaStar,       label: 'مكافأة إحالة',   value: user?.referralReward || 0, sub: 'يوم Pro', color: 'text-purple-600', bg: 'bg-purple-50' },
+  const tabs = [
+    { id: 'palettes',  label: 'My Palettes',  icon: FaTableCells },
+    { id: 'referrals', label: 'Referrals',    icon: FaUsers       },
+    { id: 'settings',  label: 'Settings',     icon: FaGear        },
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50" dir="rtl">
-      {/* Topbar */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-black text-sm">C</div>
-            <span className="font-black text-gray-800 text-lg">CheckColors</span>
-          </Link>
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
+      {/* Top bar */}
+      <div className="bg-white sticky top-14 z-10 border-b" style={{ borderColor: LI_BORDER }}>
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {isAdmin && (
-              <Link to="/admin" className="flex items-center gap-1.5 text-xs bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-100 transition font-medium">
-                <FaShieldHalved /> إدارة الموقع
-              </Link>
-            )}
-            <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${badge.bg} ${badge.text}`}>{badge.label}</span>
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base"
+              style={{ background: `linear-gradient(135deg, ${LI_BLUE}, #5BA4CF)` }}>
               {user?.name?.charAt(0).toUpperCase()}
             </div>
-            <button onClick={logout} className="text-gray-400 hover:text-red-500 transition p-1" title="تسجيل الخروج">
-              <FaRightFromBracket />
-            </button>
+            <div>
+              <p className="font-semibold text-sm" style={{ color: LI_TEXT }}>{user?.name}</p>
+              <span className="text-xs px-2 py-0.5 rounded-sm font-medium"
+                style={{ backgroundColor: planStyle.bg, color: planStyle.color }}>
+                {planStyle.label}
+              </span>
+            </div>
           </div>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Welcome */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-black text-gray-800">مرحباً، {user?.name} 👋</h1>
-          <p className="text-gray-500 mt-1 text-sm">إدارة باليتاتك واشتراكاتك ومكافآتك</p>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {stats.map(({ icon: Icon, label, value, sub, color, bg }) => (
-            <div key={label} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-              <div className={`w-9 h-9 ${bg} rounded-xl flex items-center justify-center mb-3`}>
-                <Icon className={`${color} text-lg`} />
-              </div>
-              <div className="text-2xl font-black text-gray-800">{value} <span className="text-sm text-gray-400 font-normal">{sub}</span></div>
-              <div className="text-gray-500 text-xs mt-0.5">{label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Upgrade banner */}
-        {plan === 'free' && (
-          <Link to="/pricing" className="flex items-center justify-between bg-gradient-to-l from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-5 mb-6 hover:border-blue-400 transition group">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                <FaCrown className="text-white" />
-              </div>
-              <div>
-                <p className="font-bold text-gray-800">ارتقِ إلى Pro</p>
-                <p className="text-gray-500 text-sm">باليتات ∞ + 100 AI شهرياً + تصدير متقدم</p>
-              </div>
-            </div>
-            <span className="text-blue-600 font-bold text-sm group-hover:gap-2 transition flex items-center gap-1">
-              $9.99/شهر <FaArrowTrendUp />
-            </span>
-          </Link>
-        )}
-
-        {/* Tabs */}
-        <div className="flex gap-1 border-b border-gray-200 mb-6">
-          {[
-            { id: 'palettes', label: 'باليتاتي', icon: FaTableCells },
-            { id: 'referrals', label: 'الإحالات', icon: FaUsers },
-            { id: 'settings', label: 'الإعدادات', icon: FaGear },
-          ].map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => setTab(id)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition -mb-px ${tab === id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-              <Icon className="text-xs" /> {label}
-            </button>
-          ))}
-        </div>
-
-        {/* Palettes */}
-        {tab === 'palettes' && (
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-gray-700">الباليتات المحفوظة ({palettes.length})</h3>
-              <Link to="/Generate-Palette" className="flex items-center gap-1.5 text-sm bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition font-medium">
-                <FaPlus className="text-xs" /> باليت جديد
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Link to="/admin"
+                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-semibold"
+                style={{ borderColor: '#CC1016', color: '#CC1016' }}>
+                <FaShieldHalved /> Admin
               </Link>
-            </div>
-            {loadingPalettes ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[1,2,3,4].map(i => <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />)}
-              </div>
-            ) : palettes.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                <FaTableCells className="mx-auto text-4xl text-gray-300 mb-3" />
-                <p className="text-gray-500 font-medium">لا توجد باليتات بعد</p>
-                <Link to="/Generate-Palette" className="text-blue-600 text-sm hover:underline mt-2 inline-block">ابدأ بإنشاء باليت</Link>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {palettes.map(p => (
-                  <div key={p._id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md transition group">
-                    <div className="flex h-20">
-                      {p.colors.map(c => <div key={c} style={{ backgroundColor: c }} className="flex-1" />)}
-                    </div>
-                    <div className="p-3 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-gray-700 truncate">{p.name}</p>
-                        <p className="text-xs text-gray-400">{p.colors.length} ألوان</p>
-                      </div>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                        <button className="p-1.5 text-gray-400 hover:text-blue-600 transition"><FaEye className="text-xs" /></button>
-                        <button onClick={() => deletePalette(p._id)} className="p-1.5 text-gray-400 hover:text-red-500 transition"><FaTrash className="text-xs" /></button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
             )}
+            <button onClick={logout} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-semibold"
+              style={{ borderColor: LI_BORDER, color: LI_MUTED }}>
+              <FaRightFromBracket /> Sign out
+            </button>
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Referrals */}
-        {tab === 'referrals' && referrals && (
-          <div className="space-y-4">
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-              <div className="flex items-start gap-4 mb-5">
-                <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                  <FaUsers className="text-green-600 text-xl" />
+      <div className="max-w-5xl mx-auto px-4 py-6 flex gap-5">
+        {/* Left sidebar */}
+        <aside className="hidden lg:block w-56 flex-shrink-0">
+          <div className="bg-white rounded-xl overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
+            {/* Profile mini card */}
+            <div className="p-4 border-b" style={{ borderColor: LI_BORDER }}>
+              <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold mb-2"
+                style={{ background: `linear-gradient(135deg, ${LI_BLUE}, #5BA4CF)` }}>
+                {user?.name?.charAt(0).toUpperCase()}
+              </div>
+              <p className="text-sm font-semibold text-center" style={{ color: LI_TEXT }}>{user?.name}</p>
+              <p className="text-xs text-center mt-0.5 truncate" style={{ color: LI_MUTED }}>{user?.email}</p>
+            </div>
+            <nav className="p-2">
+              {tabs.map(({ id, label, icon: Icon }) => (
+                <button key={id} onClick={() => setTab(id)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-left transition-colors"
+                  style={{
+                    backgroundColor: tab === id ? '#EEF3F8' : 'transparent',
+                    color: tab === id ? LI_BLUE : LI_MUTED,
+                  }}>
+                  <Icon className="text-base" /> {label}
+                </button>
+              ))}
+            </nav>
+            <div className="p-3 border-t" style={{ borderColor: LI_BORDER }}>
+              {plan === 'free' && (
+                <Link to="/pricing"
+                  className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-semibold"
+                  style={{ color: '#915907', backgroundColor: '#FFF9F0' }}>
+                  <FaCrown /> Upgrade to Pro
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Stats card */}
+          <div className="bg-white rounded-xl mt-3 p-4" style={{ border: `1px solid ${LI_BORDER}` }}>
+            <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>QUICK STATS</p>
+            {[
+              { icon: FaTableCells, label: 'Palettes', value: palettes.length, max: plan === 'free' ? '/10' : '/∞' },
+              { icon: FaBolt, label: 'AI Generations', value: user?.aiGenerations || 0, max: '' },
+              { icon: FaUsers, label: 'Referrals', value: user?.referralCount || 0, max: '' },
+            ].map(({ icon: Icon, label, value, max }) => (
+              <div key={label} className="flex items-center justify-between py-2 border-b last:border-0"
+                style={{ borderColor: LI_BORDER }}>
+                <div className="flex items-center gap-2 text-xs" style={{ color: LI_MUTED }}>
+                  <Icon className="text-sm" style={{ color: LI_BLUE }} /> {label}
+                </div>
+                <span className="text-xs font-semibold" style={{ color: LI_TEXT }}>{value}{max}</span>
+              </div>
+            ))}
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 min-w-0">
+          {/* Mobile tabs */}
+          <div className="lg:hidden flex gap-1 bg-white rounded-xl p-1 mb-4" style={{ border: `1px solid ${LI_BORDER}` }}>
+            {tabs.map(({ id, label, icon: Icon }) => (
+              <button key={id} onClick={() => setTab(id)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-colors"
+                style={{ backgroundColor: tab === id ? LI_BLUE : 'transparent', color: tab === id ? '#fff' : LI_MUTED }}>
+                <Icon /> {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Pro upgrade banner */}
+          {plan === 'free' && (
+            <Link to="/pricing"
+              className="flex items-center justify-between bg-white rounded-xl p-4 mb-4 transition-shadow hover:shadow-sm"
+              style={{ border: `1px solid ${LI_BORDER}` }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: '#FFF9F0' }}>
+                  <FaCrown style={{ color: '#915907' }} />
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-800">رابط الإحالة الخاص بك</h3>
-                  <p className="text-gray-500 text-sm mt-0.5">احصل على 7 أيام Pro مجاناً لكل صديق يسجل برابطك</p>
+                  <p className="text-sm font-semibold" style={{ color: LI_TEXT }}>Upgrade to Pro</p>
+                  <p className="text-xs" style={{ color: LI_MUTED }}>Unlimited palettes · 100 AI/month · Advanced export</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-600 font-mono truncate">{referrals.referralLink}</div>
-                <button onClick={copyReferralLink} className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
-                  <FaCopy /> نسخ
-                </button>
-              </div>
-              <div className="grid grid-cols-3 gap-3 mt-5">
-                {[
-                  { label: 'إجمالي الإحالات', value: referrals.referralCount },
-                  { label: 'أيام مكافأة', value: referrals.referralReward },
-                  { label: 'كود الإحالة', value: user?.referralCode },
-                ].map(({ label, value }) => (
-                  <div key={label} className="bg-gray-50 rounded-xl p-3 text-center">
-                    <p className="text-xl font-black text-gray-800">{value}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+              <span className="text-sm font-semibold" style={{ color: LI_BLUE }}>$9.99/mo →</span>
+            </Link>
+          )}
 
-            {referrals.referrals?.length > 0 && (
-              <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-                <h3 className="font-bold text-gray-800 mb-4">المستخدمون المُحالون ({referrals.referrals.length})</h3>
-                <div className="space-y-2">
-                  {referrals.referrals.map(r => (
-                    <div key={r._id} className="flex items-center justify-between py-2.5 border-b border-gray-50 last:border-0">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
-                          {r.name?.charAt(0)}
+          {/* PALETTES TAB */}
+          {tab === 'palettes' && (
+            <div className="bg-white rounded-xl" style={{ border: `1px solid ${LI_BORDER}` }}>
+              <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: LI_BORDER }}>
+                <h2 className="font-semibold text-base" style={{ color: LI_TEXT }}>My Palettes ({palettes.length})</h2>
+                <Link to="/Generate-Palette"
+                  className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-full text-white font-semibold"
+                  style={{ backgroundColor: LI_BLUE }}>
+                  <FaPlus /> New Palette
+                </Link>
+              </div>
+              <div className="p-5">
+                {loadingPalettes ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[1,2,3,4,5,6].map(i => (
+                      <div key={i} className="rounded-xl animate-pulse h-28" style={{ backgroundColor: '#F3F2EF' }} />
+                    ))}
+                  </div>
+                ) : palettes.length === 0 ? (
+                  <div className="text-center py-16">
+                    <FaPalette className="mx-auto text-4xl mb-3" style={{ color: '#B0B0B0' }} />
+                    <p className="text-sm font-medium" style={{ color: LI_MUTED }}>No palettes yet</p>
+                    <Link to="/Generate-Palette" className="text-xs mt-2 inline-block font-semibold" style={{ color: LI_BLUE }}>
+                      Create your first palette
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {palettes.map(p => (
+                      <div key={p._id} className="rounded-xl overflow-hidden group transition-shadow hover:shadow-md"
+                        style={{ border: `1px solid ${LI_BORDER}` }}>
+                        <div className="flex h-16">
+                          {p.colors.map(c => <div key={c} style={{ backgroundColor: c }} className="flex-1" />)}
                         </div>
-                        <div>
-                          <p className="text-sm font-medium text-gray-700">{r.name}</p>
-                          <p className="text-xs text-gray-400">{r.email}</p>
+                        <div className="p-3 flex items-center justify-between">
+                          <div>
+                            <p className="text-xs font-semibold truncate" style={{ color: LI_TEXT }}>{p.name}</p>
+                            <p className="text-[10px]" style={{ color: LI_MUTED }}>{p.colors.length} colors</p>
+                          </div>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button className="p-1.5 rounded" style={{ color: LI_BLUE }}><FaEye className="text-xs" /></button>
+                            <button onClick={() => deletePalette(p._id)} className="p-1.5 rounded"
+                              style={{ color: '#CC1016' }}><FaTrash className="text-xs" /></button>
+                          </div>
                         </div>
                       </div>
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${PLAN_BADGE[r.subscription?.plan || 'free'].bg} ${PLAN_BADGE[r.subscription?.plan || 'free'].text}`}>
-                        {PLAN_BADGE[r.subscription?.plan || 'free'].label}
-                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* REFERRALS TAB */}
+          {tab === 'referrals' && referrals && (
+            <div className="space-y-4">
+              <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#EEF3F8' }}>
+                    <FaUsers style={{ color: LI_BLUE }} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm" style={{ color: LI_TEXT }}>Your referral link</h3>
+                    <p className="text-xs" style={{ color: LI_MUTED }}>Earn 7 days Pro free for each friend you refer</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 text-xs font-mono px-3 py-2.5 rounded-md truncate"
+                    style={{ backgroundColor: '#F3F2EF', color: LI_MUTED, border: `1px solid ${LI_BORDER}` }}>
+                    {referrals.referralLink}
+                  </div>
+                  <button onClick={copyReferralLink}
+                    className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-full font-semibold text-white"
+                    style={{ backgroundColor: LI_BLUE }}>
+                    <FaCopy /> Copy
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-3 mt-4">
+                  {[
+                    { label: 'Total Referrals', value: referrals.referralCount },
+                    { label: 'Reward Days', value: referrals.referralReward },
+                    { label: 'Your Code', value: user?.referralCode },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="rounded-lg p-3 text-center" style={{ backgroundColor: '#F3F2EF' }}>
+                      <p className="text-lg font-bold" style={{ color: LI_TEXT }}>{value}</p>
+                      <p className="text-xs mt-0.5" style={{ color: LI_MUTED }}>{label}</p>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-        )}
 
-        {/* Settings */}
-        {tab === 'settings' && (
-          <div className="max-w-lg space-y-4">
-            <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-              <h3 className="font-bold text-gray-800 mb-5 flex items-center gap-2"><FaGear className="text-gray-400" /> معلومات الحساب</h3>
-              <div className="space-y-3">
+              {referrals.referrals?.length > 0 && (
+                <div className="bg-white rounded-xl" style={{ border: `1px solid ${LI_BORDER}` }}>
+                  <div className="px-5 py-4 border-b" style={{ borderColor: LI_BORDER }}>
+                    <h3 className="font-semibold text-sm" style={{ color: LI_TEXT }}>
+                      Referred Users ({referrals.referrals.length})
+                    </h3>
+                  </div>
+                  <div className="divide-y" style={{ borderColor: LI_BORDER }}>
+                    {referrals.referrals.map(r => (
+                      <div key={r._id} className="flex items-center justify-between px-5 py-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                            style={{ backgroundColor: LI_BLUE }}>
+                            {r.name?.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium" style={{ color: LI_TEXT }}>{r.name}</p>
+                            <p className="text-xs" style={{ color: LI_MUTED }}>{r.email}</p>
+                          </div>
+                        </div>
+                        <span className="text-xs px-2 py-1 rounded-sm font-medium"
+                          style={PLAN_STYLE[r.subscription?.plan || 'free']}>
+                          {PLAN_STYLE[r.subscription?.plan || 'free'].label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SETTINGS TAB */}
+          {tab === 'settings' && (
+            <div className="bg-white rounded-xl" style={{ border: `1px solid ${LI_BORDER}` }}>
+              <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: LI_BORDER }}>
+                <FaGear style={{ color: LI_BLUE }} />
+                <h2 className="font-semibold text-base" style={{ color: LI_TEXT }}>Account Settings</h2>
+              </div>
+              <div className="p-5 max-w-sm space-y-0 divide-y" style={{ borderColor: LI_BORDER }}>
                 {[
-                  { label: 'الاسم', value: user?.name },
-                  { label: 'البريد الإلكتروني', value: user?.email },
-                  { label: 'تاريخ الانضمام', value: new Date(user?.createdAt).toLocaleDateString('ar-EG') },
+                  { label: 'Full name',     value: user?.name },
+                  { label: 'Email',         value: user?.email },
+                  { label: 'Member since',  value: new Date(user?.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) },
+                  { label: 'Plan',          value: planStyle.label },
                 ].map(({ label, value }) => (
-                  <div key={label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                    <span className="text-sm text-gray-500">{label}</span>
-                    <span className="text-sm font-medium text-gray-800">{value}</span>
+                  <div key={label} className="flex items-center justify-between py-3">
+                    <span className="text-sm" style={{ color: LI_MUTED }}>{label}</span>
+                    <span className="text-sm font-medium" style={{ color: LI_TEXT }}>{value}</span>
                   </div>
                 ))}
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm text-gray-500">الخطة</span>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${badge.bg} ${badge.text}`}>{badge.label}</span>
-                </div>
+              </div>
+              <div className="px-5 pb-5">
+                {plan === 'free' ? (
+                  <Link to="/pricing"
+                    className="block w-full text-center py-2.5 rounded-full font-semibold text-sm"
+                    style={{ backgroundColor: LI_BLUE, color: '#fff' }}>
+                    Upgrade to Pro — $9.99/mo
+                  </Link>
+                ) : (
+                  <button className="w-full text-sm py-2 rounded-full border font-medium"
+                    style={{ borderColor: '#CC1016', color: '#CC1016' }}>
+                    Cancel subscription
+                  </button>
+                )}
               </div>
             </div>
-
-            {plan === 'free' ? (
-              <Link to="/pricing" className="block bg-blue-600 text-white text-center py-3.5 rounded-2xl font-bold hover:bg-blue-700 transition">
-                ترقية إلى Pro — $9.99/شهر
-              </Link>
-            ) : (
-              <button className="w-full text-red-500 text-sm hover:text-red-600 transition py-2">إلغاء الاشتراك</button>
-            )}
-          </div>
-        )}
-      </main>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

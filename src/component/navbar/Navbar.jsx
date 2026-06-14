@@ -1,269 +1,251 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  FaHome, FaInfoCircle, FaPhone, FaSearch, FaBars, FaUser,
-  FaTimes, FaPalette, FaAdjust, FaImage, FaRandom, FaSignOutAlt,
-  FaTachometerAlt, FaCrown, FaShieldAlt
-} from 'react-icons/fa';
-import { BsStars } from "react-icons/bs";
-import { MdExpandMore, MdExpandLess } from 'react-icons/md';
+  FaBars, FaXmark, FaChevronDown, FaPalette, FaWandMagicSparkles,
+  FaRightFromBracket, FaGauge, FaShieldHalved, FaCrown, FaMagnifyingGlass,
+  FaEye, FaImage, FaShuffle, FaCircleHalfStroke
+} from 'react-icons/fa6';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import CheckColorslogo from '../../assets/Check-Colors.png';
 
 const Navbar = () => {
-  const [searchInput, setSearchInput] = useState('');
-  const [flyoutOneOpen, setFlyoutOneOpen] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchFocused, setSearchFocused] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const location = useLocation();
-  const flyoutRef = useRef(null);
-  const userMenuRef = useRef(null);
-
+  const servicesRef = useRef(null);
+  const userRef = useRef(null);
   const { user, logout, isAdmin, isPro } = useAuth();
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (flyoutRef.current && !flyoutRef.current.contains(event.target)) setFlyoutOneOpen(false);
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) setUserMenuOpen(false);
+    const h = (e) => {
+      if (servicesRef.current && !servicesRef.current.contains(e.target)) setServicesOpen(false);
+      if (userRef.current && !userRef.current.contains(e.target)) setUserMenuOpen(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
   }, []);
 
-  useEffect(() => { setMobileMenuOpen(false); }, [location]);
+  useEffect(() => { setMobileOpen(false); setServicesOpen(false); }, [location]);
 
-  useEffect(() => {
-    const handleEscKey = (e) => {
-      if (e.key === 'Escape') { setFlyoutOneOpen(false); setMobileMenuOpen(false); setUserMenuOpen(false); }
-    };
-    document.addEventListener('keydown', handleEscKey);
-    return () => document.removeEventListener('keydown', handleEscKey);
-  }, []);
+  const plan = user?.subscription?.plan || 'free';
+  const planLabel = plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : null;
 
-  const isActiveRoute = (path) => location.pathname === path;
-
-  const mainLinks = [
-    { path: '/', label: 'Home', icon: <FaHome /> },
-    { path: '/About', label: 'About', icon: <FaInfoCircle /> },
-    { path: '/Contact', label: 'Contact', icon: <FaPhone /> },
-    { path: '/pricing', label: 'Pricing', icon: <FaCrown /> },
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/About', label: 'About' },
+    { to: '/Contact', label: 'Contact' },
+    { to: '/pricing', label: 'Pricing' },
   ];
 
-  const serviceLinks = [
-    { path: '/Color-Palettes', label: 'Color Explorer', icon: <FaPalette /> },
-    { path: '/colors', label: 'Colors', icon: <FaPalette /> },
-    { path: '/ExplorerColor', label: 'Explorer Color', icon: <FaPalette /> },
-    { path: '/Contrast-Checker', label: 'Contrast Checker', icon: <FaAdjust /> },
-    { path: '/image-to-palette', label: 'Image to Palette', icon: <FaImage /> },
-    { path: '/Generate-Palette', label: 'Generate Palette', icon: <FaRandom /> },
-    { path: '/Ai-Colors', label: 'Ai Colors', icon: <BsStars /> },
+  const services = [
+    { to: '/Color-Palettes', label: 'Color Explorer', icon: FaPalette },
+    { to: '/ExplorerColor', label: 'Explorer Color', icon: FaEye },
+    { to: '/Contrast-Checker', label: 'Contrast Checker', icon: FaCircleHalfStroke },
+    { to: '/image-to-palette', label: 'Image to Palette', icon: FaImage },
+    { to: '/Generate-Palette', label: 'Generate Palette', icon: FaShuffle },
+    { to: '/Ai-Colors', label: 'AI Colors', icon: FaWandMagicSparkles },
   ];
 
-  const PLAN_BADGE = {
-    free: null,
-    pro: { label: 'Pro', color: 'bg-indigo-100 text-indigo-700' },
-    enterprise: { label: 'Enterprise', color: 'bg-purple-100 text-purple-700' },
-  };
-
-  const planBadge = user ? PLAN_BADGE[user.subscription?.plan] : null;
+  const isActive = (p) => location.pathname === p;
 
   return (
-    <nav className="bg-white text-gray-800 shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="flex items-center space-x-2 transition-transform duration-300 hover:scale-105">
-              <img className="w-10 h-10" src={CheckColorslogo} alt="CheckColors Logo" />
-              <span className="font-bold text-lg text-blue-600 hidden sm:block">CheckColors</span>
+    <nav style={{ backgroundColor: '#fff', borderBottom: '1px solid #E0DFDC' }} className="sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+          <img src={CheckColorslogo} alt="CheckColors" className="w-8 h-8" />
+          <span className="font-bold text-base hidden sm:block" style={{ color: '#0A66C2' }}>CheckColors</span>
+        </Link>
+
+        {/* Search */}
+        <div className="relative hidden md:block">
+          <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+          <input
+            value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search..."
+            className="pl-8 pr-3 py-1.5 text-sm rounded-md outline-none w-44 focus:w-52 transition-all"
+            style={{ backgroundColor: '#EEF3F8', border: '1px solid transparent' }}
+            onFocus={e => e.target.style.borderColor = '#0A66C2'}
+            onBlur={e => e.target.style.borderColor = 'transparent'}
+          />
+        </div>
+
+        {/* Nav Links */}
+        <div className="hidden md:flex items-center gap-1 ml-2">
+          {navLinks.map(({ to, label }) => (
+            <Link key={to} to={to}
+              className="px-3 py-1.5 text-sm font-medium rounded transition-colors"
+              style={{ color: isActive(to) ? '#0A66C2' : '#666', backgroundColor: isActive(to) ? '#EEF3F8' : 'transparent' }}
+              onMouseEnter={e => !isActive(to) && (e.currentTarget.style.backgroundColor = '#F3F2EF')}
+              onMouseLeave={e => !isActive(to) && (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              {label}
             </Link>
+          ))}
+
+          {/* Services dropdown */}
+          <div className="relative" ref={servicesRef}>
+            <button
+              onClick={() => setServicesOpen(p => !p)}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded transition-colors"
+              style={{ color: servicesOpen ? '#0A66C2' : '#666', backgroundColor: servicesOpen ? '#EEF3F8' : 'transparent' }}
+            >
+              Services <FaChevronDown className={`text-xs transition-transform ${servicesOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {servicesOpen && (
+              <div className="absolute top-full mt-1 left-0 w-56 bg-white rounded-lg shadow-lg py-2 z-50"
+                style={{ border: '1px solid #E0DFDC' }}>
+                {services.map(({ to, label, icon: Icon }) => (
+                  <Link key={to} to={to}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                    style={{ color: '#333' }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F3F2EF'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <Icon className="text-base" style={{ color: '#0A66C2' }} />
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {mainLinks.map((link) => (
-              <Link key={link.path} to={link.path}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center space-x-1 ${
-                  isActiveRoute(link.path) ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
-                }`}>
-                {link.label}
-              </Link>
-            ))}
+        {/* Spacer */}
+        <div className="flex-1" />
 
-            {/* Services Flyout */}
-            <div className="relative" ref={flyoutRef}>
-              <button
-                className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  flyoutOneOpen ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
-                }`}
-                onClick={(e) => { e.stopPropagation(); setFlyoutOneOpen(!flyoutOneOpen); }}>
-                <span>Services</span>
-                {flyoutOneOpen ? <MdExpandLess /> : <MdExpandMore />}
-              </button>
+        {/* Auth */}
+        {user ? (
+          <div className="relative" ref={userRef}>
+            <button
+              onClick={() => setUserMenuOpen(p => !p)}
+              className="flex items-center gap-2 px-2 py-1 rounded-full transition-colors"
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F3F2EF'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+            >
+              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, #0A66C2, #5BA4CF)' }}>
+                {user.name?.charAt(0).toUpperCase()}
+              </div>
+              <div className="hidden lg:block text-left">
+                <p className="text-xs font-semibold leading-tight" style={{ color: '#000000E6' }}>{user.name?.split(' ')[0]}</p>
+                {planLabel && <p className="text-[10px]" style={{ color: '#0A66C2' }}>{planLabel}</p>}
+              </div>
+              <FaChevronDown className="text-xs text-gray-400" />
+            </button>
 
-              {flyoutOneOpen && (
-                <div className="absolute z-10 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 origin-top-right">
-                  <div className="p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2 pb-2 border-b">Available Services</h3>
-                    <div className="space-y-1">
-                      {serviceLinks.map((service) => (
-                        <Link key={service.path} to={service.path}
-                          className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm transition-all duration-200 ${
-                            isActiveRoute(service.path) ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
-                          }`}>
-                          <span className="text-gray-500">{service.icon}</span>
-                          <span>{service.label}</span>
-                        </Link>
-                      ))}
+            {userMenuOpen && (
+              <div className="absolute top-full mt-1 right-0 w-60 bg-white rounded-lg shadow-xl py-2 z-50"
+                style={{ border: '1px solid #E0DFDC' }}>
+                <div className="px-4 py-3 border-b" style={{ borderColor: '#E0DFDC' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                      style={{ background: 'linear-gradient(135deg, #0A66C2, #5BA4CF)' }}>
+                      {user.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm" style={{ color: '#000000E6' }}>{user.name}</p>
+                      <p className="text-xs" style={{ color: '#00000099' }}>{user.email}</p>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right side */}
-          <div className="flex items-center space-x-2">
-            {/* Search */}
-            <form onSubmit={(e) => e.preventDefault()} className="relative hidden md:block">
-              <div className={`relative transition-all duration-300 ${searchFocused ? 'w-56' : 'w-36'}`}>
-                <FaSearch className={`absolute left-3 top-1/2 -translate-y-1/2 ${searchFocused ? 'text-blue-500' : 'text-gray-400'}`} />
-                <input type="text" placeholder="Search..." value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onFocus={() => setSearchFocused(true)} onBlur={() => setSearchFocused(false)}
-                  className="bg-gray-100 text-gray-800 rounded-full py-2 pl-10 pr-4 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all duration-200" />
-              </div>
-            </form>
-
-            {/* Auth section */}
-            {user ? (
-              <div className="relative" ref={userMenuRef}>
-                <button onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-gray-100 transition-all">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
-                    {user.name?.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="text-sm font-medium text-gray-700 hidden lg:block">{user.name?.split(' ')[0]}</span>
-                  {planBadge && (
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${planBadge.color}`}>{planBadge.label}</span>
-                  )}
-                  <MdExpandMore className="text-gray-400" />
-                </button>
-
-                {userMenuOpen && (
-                  <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="font-semibold text-sm text-gray-800">{user.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
-                    </div>
-                    <Link to="/dashboard" onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                      <FaTachometerAlt className="text-indigo-500" /> لوحة التحكم
+                <div className="py-1">
+                  <Link to="/dashboard" onClick={() => setUserMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                    style={{ color: '#333' }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F3F2EF'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <FaGauge style={{ color: '#0A66C2' }} /> Dashboard
+                  </Link>
+                  {isAdmin && (
+                    <Link to="/admin" onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                      style={{ color: '#333' }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F3F2EF'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <FaShieldHalved style={{ color: '#CC1016' }} /> Admin Panel
                     </Link>
-                    {isAdmin && (
-                      <Link to="/admin" onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
-                        <FaShieldAlt className="text-red-500" /> إدارة الموقع
-                      </Link>
-                    )}
-                    {!isPro && (
-                      <Link to="/pricing" onClick={() => setUserMenuOpen(false)}
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-indigo-600 hover:bg-indigo-50 transition-colors font-medium">
-                        <FaCrown className="text-yellow-500" /> ترقية إلى Pro
-                      </Link>
-                    )}
-                    <div className="border-t border-gray-100 mt-1 pt-1">
-                      <button onClick={() => { logout(); setUserMenuOpen(false); }}
-                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full">
-                        <FaSignOutAlt /> تسجيل الخروج
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Link to="/login"
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors hidden sm:block">
-                  دخول
-                </Link>
-                <Link to="/register"
-                  className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                  إنشاء حساب
-                </Link>
+                  )}
+                  {!isPro && (
+                    <Link to="/pricing" onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                      style={{ color: '#915907' }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#FFF9F0'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                      <FaCrown style={{ color: '#915907' }} /> Upgrade to Pro
+                    </Link>
+                  )}
+                </div>
+                <div className="border-t" style={{ borderColor: '#E0DFDC' }}>
+                  <button onClick={() => { logout(); setUserMenuOpen(false); }}
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm w-full transition-colors"
+                    style={{ color: '#CC1016' }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#FFF0F0'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                    <FaRightFromBracket /> Sign Out
+                  </button>
+                </div>
               </div>
             )}
-
-            {/* Mobile Menu Button */}
-            <button className="md:hidden p-2 rounded-md hover:bg-gray-100 transition-all"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <FaTimes className="h-6 w-6 text-gray-600" /> : <FaBars className="h-6 w-6 text-gray-600" />}
-            </button>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Link to="/login"
+              className="hidden sm:block px-4 py-1.5 text-sm font-semibold rounded-full border transition-colors"
+              style={{ borderColor: '#0A66C2', color: '#0A66C2' }}
+              onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#EEF3F8'; }}
+              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}>
+              Sign in
+            </Link>
+            <Link to="/register"
+              className="px-4 py-1.5 text-sm font-semibold rounded-full text-white transition-colors"
+              style={{ backgroundColor: '#0A66C2' }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#004182'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = '#0A66C2'}>
+              Join now
+            </Link>
+          </div>
+        )}
+
+        {/* Mobile toggle */}
+        <button className="md:hidden p-2 rounded" onClick={() => setMobileOpen(p => !p)}>
+          {mobileOpen ? <FaXmark className="text-gray-600" /> : <FaBars className="text-gray-600" />}
+        </button>
       </div>
 
       {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
-          <div className="pt-2 pb-3 px-4 space-y-1">
-            {mainLinks.map((link) => (
-              <Link key={link.path} to={link.path}
-                className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-all ${
-                  isActiveRoute(link.path) ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
-                }`}>
-                <span className="text-gray-500">{link.icon}</span><span>{link.label}</span>
+      {mobileOpen && (
+        <div className="md:hidden bg-white border-t" style={{ borderColor: '#E0DFDC' }}>
+          <div className="px-4 py-2 space-y-1">
+            {navLinks.map(({ to, label }) => (
+              <Link key={to} to={to} className="block px-3 py-2 text-sm rounded font-medium"
+                style={{ color: isActive(to) ? '#0A66C2' : '#333', backgroundColor: isActive(to) ? '#EEF3F8' : 'transparent' }}>
+                {label}
               </Link>
             ))}
-
-            <div className="border-t border-gray-200 pt-2 mt-2">
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-1">Services</h3>
-              {serviceLinks.map((service) => (
-                <Link key={service.path} to={service.path}
-                  className={`flex items-center space-x-3 pl-6 py-2 rounded-md text-sm font-medium transition-all ${
-                    isActiveRoute(service.path) ? 'bg-blue-50 text-blue-600' : 'text-gray-700 hover:bg-gray-100'
-                  }`}>
-                  <span className="text-gray-500">{service.icon}</span><span>{service.label}</span>
+            <div className="border-t pt-2 mt-2" style={{ borderColor: '#E0DFDC' }}>
+              <p className="text-xs font-semibold px-3 pb-1" style={{ color: '#00000099' }}>SERVICES</p>
+              {services.map(({ to, label, icon: Icon }) => (
+                <Link key={to} to={to} className="flex items-center gap-2 px-3 py-2 text-sm rounded"
+                  style={{ color: '#333' }}>
+                  <Icon style={{ color: '#0A66C2' }} /> {label}
                 </Link>
               ))}
             </div>
-          </div>
-
-          {/* Mobile Auth */}
-          <div className="border-t border-gray-200 py-3 px-4">
-            {user ? (
-              <div className="space-y-1">
-                <div className="flex items-center gap-3 px-3 py-2">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                    {user.name?.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{user.name}</p>
-                    <p className="text-xs text-gray-500">{user.subscription?.plan}</p>
-                  </div>
-                </div>
-                <Link to="/dashboard" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
-                  <FaTachometerAlt className="text-indigo-500" /> لوحة التحكم
-                </Link>
-                {isAdmin && (
-                  <Link to="/admin" className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
-                    <FaShieldAlt className="text-red-500" /> إدارة الموقع
-                  </Link>
-                )}
-                <button onClick={logout} className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md w-full">
-                  <FaSignOutAlt /> تسجيل الخروج
-                </button>
+            {!user && (
+              <div className="flex gap-2 pt-2 border-t" style={{ borderColor: '#E0DFDC' }}>
+                <Link to="/login" className="flex-1 text-center py-2 text-sm font-semibold rounded-full border"
+                  style={{ borderColor: '#0A66C2', color: '#0A66C2' }}>Sign in</Link>
+                <Link to="/register" className="flex-1 text-center py-2 text-sm font-semibold rounded-full text-white"
+                  style={{ backgroundColor: '#0A66C2' }}>Join now</Link>
               </div>
-            ) : (
-              <div className="flex gap-2">
-                <Link to="/login" className="flex-1 text-center px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                  دخول
-                </Link>
-                <Link to="/register" className="flex-1 text-center px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                  إنشاء حساب
-                </Link>
-              </div>
+            )}
+            {user && (
+              <button onClick={logout} className="w-full text-left px-3 py-2 text-sm rounded font-medium"
+                style={{ color: '#CC1016' }}>Sign Out</button>
             )}
           </div>
         </div>
