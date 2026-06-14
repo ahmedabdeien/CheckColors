@@ -1,412 +1,329 @@
 import React, { useState, useEffect } from 'react';
-import { LuHeart, LuClipboard, LuDownload, LuSearch, LuPlus, LuShare2, LuGrid2X2 , LuList, LuX, LuCheck, LuRefreshCw } from "react-icons/lu";
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  FaHeart, FaClipboard, FaDownload, FaMagnifyingGlass, FaPlus,
+  FaShareNodes, FaTableCells, FaList, FaXmark, FaCheck,
+  FaArrowRotateRight, FaFilter
+} from 'react-icons/fa6';
 
-// Extract smaller components
+const LI_BLUE = '#0A66C2';
+const LI_BG = '#F3F2EF';
+const LI_BORDER = '#E0DFDC';
+const LI_TEXT = '#000000E6';
+const LI_MUTED = '#00000099';
+
+const getContrast = (hex) => {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5 ? '#000000' : '#FFFFFF';
+};
+
 const ColorSwatch = ({ color, onCopy }) => {
-  const getContrastColor = (hexColor) => {
-    const hex = hexColor.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.5 ? '#000000' : '#FFFFFF';
+  const [copied, setCopied] = useState(false);
+  const handle = () => {
+    onCopy(color);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
-
   return (
-    <motion.div
-      className="flex-1 relative group"
-      style={{ backgroundColor: color }}
-      whileHover={{ flex: 2 }}
-    >
-      <button
-        onClick={() => onCopy(color)}
-        className="absolute bottom-2 right-2 p-1.5 rounded-full bg-black/10 hover:bg-black/20 backdrop-blur-sm transition"
-        style={{ color: getContrastColor(color) }}
-      >
-        <LuClipboard size={16} />
-      </button>
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
-        <span 
-          className="px-2 py-1 rounded-md text-sm font-medium shadow-sm"
-          style={{ 
-            backgroundColor: color,
-            color: getContrastColor(color)
-          }}
-        >
+    <div className="flex-1 relative group h-24 cursor-pointer" style={{ backgroundColor: color }} onClick={handle}>
+      <div className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+        {copied
+          ? <FaCheck className="text-sm mb-1" style={{ color: getContrast(color) }} />
+          : <FaClipboard className="text-sm mb-1" style={{ color: getContrast(color) }} />}
+        <span className="text-[10px] font-mono font-medium px-1 rounded" style={{ color: getContrast(color) }}>
           {color.toUpperCase()}
         </span>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
-const Notification = ({ notification }) => (
-  <AnimatePresence>
-    {notification && (
-      <motion.div 
-      
-        className={`fixed top-4 right-4 z-50 bg-white shadow-lg rounded-lg px-4 py-3 flex items-center space-x-2 ${
-          notification.type === 'success' ? 'border-l-4 border-green-500' : 
-          notification.type === 'error' ? 'border-l-4 border-red-500' : 
-          'border-l-4 border-blue-500'
-        }`}
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0 }}
-      >
-        {notification.type === 'success' && <LuCheck className="text-green-500" />}
-        {notification.type === 'error' && <LuX className="text-red-500" />}
-        {notification.type === 'info' && <LuSearch className="text-blue-500" />}
-        <span>{notification.message}</span>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
-
 const PaletteCard = ({ palette, onToggleLike, onCopyColor, onDownload, onShare }) => (
-  <div className='grid grid-cols-3'>
-  <div className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-200 ">
-    {/* Color Swatches */}
-    <div className="flex h-32 cursor-pointer">
-      {palette.colors.map((color, index) => (
-        <ColorSwatch key={index} color={color} onCopy={onCopyColor} />
+  <div className="bg-white rounded-xl overflow-hidden hover:shadow-md transition-shadow" style={{ border: `1px solid ${LI_BORDER}` }}>
+    <div className="flex h-24">
+      {palette.colors.map((color, i) => (
+        <ColorSwatch key={i} color={color} onCopy={onCopyColor} />
       ))}
     </div>
-
-    {/* Palette Info */}
-    <div className="p-4">
-      <div className="flex justify-between items-start">
+    <div className="p-3">
+      <div className="flex items-start justify-between">
         <div>
-          <h3 className="font-semibold text-gray-900">{palette.name}</h3>
-          <p className="text-sm text-gray-500">by {palette.author}</p>
+          <h3 className="text-sm font-semibold leading-tight" style={{ color: LI_TEXT }}>{palette.name}</h3>
+          <p className="text-xs mt-0.5" style={{ color: LI_MUTED }}>by {palette.author}</p>
         </div>
-        <button 
-          onClick={() => onToggleLike(palette.id)}
-          className="flex items-center space-x-1 text-sm"
-        >
-          <LuHeart 
-            size={18} 
-            className={palette.liked ? 'text-red-500 fill-current' : 'text-gray-400'} 
-          />
+        <button onClick={() => onToggleLike(palette.id)}
+          className="flex items-center gap-1 text-xs px-2 py-1 rounded-full transition-colors"
+          style={{
+            backgroundColor: palette.liked ? '#FFF0F0' : '#F3F2EF',
+            color: palette.liked ? '#CC1016' : LI_MUTED
+          }}>
+          <FaHeart className={palette.liked ? 'fill-current' : ''} />
           <span>{palette.likes}</span>
         </button>
       </div>
-
-      <div className="mt-3 flex items-center justify-between text-sm">
-        <div className="flex items-center space-x-2">
-          <span className="text-gray-500">
-            {formatDistanceToNow(new Date(palette.createdAt))} ago
-          </span>
+      <div className="flex gap-1 mt-2">
+        {palette.colors.slice(0, 3).map((c, i) => (
+          <span key={i} className="text-[9px] font-mono" style={{ color: LI_MUTED }}>{c}</span>
+        ))}
+      </div>
+      <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: `1px solid ${LI_BORDER}` }}>
+        <div className="flex gap-1">
           {palette.tags.slice(0, 2).map(tag => (
-            <span 
-              key={tag}
-              className="px-2 py-1 rounded-full bg-gray-100 text-gray-600 text-xs"
-            >
-              {tag}
-            </span>
+            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: '#EEF3F8', color: LI_BLUE }}>{tag}</span>
           ))}
         </div>
-        <div className="flex items-center space-x-2">
-          <button 
-            onClick={() => onDownload(palette)}
-            className="p-1.5 hover:bg-gray-100 rounded-full"
-          >
-            <LuDownload size={16} />
+        <div className="flex items-center gap-1">
+          <button onClick={() => onDownload(palette)}
+            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+            style={{ color: LI_MUTED }}>
+            <FaDownload className="text-xs" />
           </button>
-          <button 
-            onClick={() => onShare(palette)}
-            className="p-1.5 hover:bg-gray-100 rounded-full"
-          >
-            <LuShare2 size={16} />
+          <button onClick={() => onShare(palette)}
+            className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
+            style={{ color: LI_MUTED }}>
+            <FaShareNodes className="text-xs" />
           </button>
         </div>
       </div>
     </div>
-  </div></div>
+  </div>
 );
 
-const ColorPaletteExplorer = () => {
+const TAGS = ['all', 'bright', 'dark', 'pastel', 'neon', 'vintage', 'random', 'new'];
+
+const randomFrom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const randomHex = () => '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0');
+const randomPalette = (i) => ({
+  id: `p-${Date.now()}-${i}`,
+  name: `${randomFrom(['Vibrant','Serene','Bold','Muted','Autumn','Urban','Forest','Sunset','Electric','Calm'])} ${randomFrom(['Harmony','Spectrum','Tones','Palette','Shades','Blend','Flow'])}`,
+  author: randomFrom(['ColorMaster','HueGenius','ChromaDesigner','PigmentPro','PaletteCreator']),
+  colors: Array(5).fill(null).map(randomHex),
+  likes: Math.floor(Math.random() * 800) + 20,
+  tags: ['random', 'new', randomFrom(['bright','dark','pastel','neon','vintage'])],
+  createdAt: new Date().toISOString(),
+  liked: false,
+});
+
+export default function ColorPaletteExplorer() {
   const [palettes, setPalettes] = useState([]);
   const [filterTag, setFilterTag] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [search, setSearch] = useState('');
   const [view, setView] = useState('grid');
   const [sortBy, setSortBy] = useState('popular');
-  const [notification, setNotification] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Simplified random data generation
-  const randomFrom = (array) => array[Math.floor(Math.random() * array.length)];
-  
-  const generateRandomColor = () => {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 2500);
   };
-  
-  const generateRandomPalette = (index) => {
-    const adjectives = ['Vibrant', 'Serene', 'Bold', 'Muted', 'Autumn', 'Summer', 'Winter', 'Spring', 'Urban', 'Forest'];
-    const nouns = ['Harmony', 'Symphony', 'Palette', 'Spectrum', 'Collection', 'Theme', 'Atmosphere', 'Tones', 'Shades'];
-    const names = ['ColorMaster', 'PaletteCreator', 'HueGenius', 'ChromaDesigner', 'PigmentPro'];
-    const tagOptions = ['bright', 'dark', 'pastel', 'neon', 'vintage'];
-    
-    return {
-      id:`palette-${Date.now()}-${index}`,
-      name: `${randomFrom(adjectives)} ${randomFrom(nouns)}`,
-      author: randomFrom(names),
-      colors: Array(5).fill().map(() => generateRandomColor()),
-      likes: Math.floor(Math.random() * 1000),
-      tags: ['random', 'new', randomFrom(tagOptions)],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      liked: false
-    };
-  };
-  
-  // Initialize with some random palettes
+
   useEffect(() => {
-    const fetchPalettes = async () => {
-      setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const initialPalettes = Array.from({ length: 16 }, (_, i) => 
-        generateRandomPalette(i) // Pass index to generator
-      );
-      setPalettes(initialPalettes);
+    setIsLoading(true);
+    setTimeout(() => {
+      setPalettes(Array.from({ length: 18 }, (_, i) => randomPalette(i)));
       setIsLoading(false);
-    };
-    
-    fetchPalettes();
+    }, 700);
   }, []);
-  
-  // Notification helper
-  const showNotification = (message, type = 'info') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
+
+  const handleCreate = () => {
+    setPalettes(prev => [randomPalette(Date.now()), ...prev]);
+    showToast('New palette created!');
   };
-  
-  // Action handlers
-  const handleCreatePalette = () => {
-    const newPalette = generateRandomPalette();
-    setPalettes([newPalette, ...palettes]);
-    showNotification('New palette created!', 'success');
+
+  const handleRefresh = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setPalettes(Array.from({ length: 18 }, (_, i) => randomPalette(i)));
+      setIsLoading(false);
+      showToast('Palettes refreshed!');
+    }, 500);
   };
-  
-  const copyToClipboard = (color) => {
+
+  const copyColor = (color) => {
     navigator.clipboard.writeText(color);
-    showNotification(`${color} copied to clipboard!`, 'success');
+    showToast(`${color} copied!`);
   };
-  
+
   const toggleLike = (id) => {
-    setPalettes(palettes.map(palette => {
-      if (palette.id === id) {
-        const newLiked = !palette.liked;
-        showNotification(newLiked ? 'Added to favorites!' : 'Removed from favorites', newLiked ? 'success' : 'info');
-        return { 
-          ...palette, 
-          likes: newLiked ? palette.likes + 1 : palette.likes - 1, 
-          liked: newLiked 
-        };
-      }
-      return palette;
+    setPalettes(prev => prev.map(p => {
+      if (p.id !== id) return p;
+      const liked = !p.liked;
+      showToast(liked ? 'Added to favorites!' : 'Removed from favorites', liked ? 'success' : 'info');
+      return { ...p, liked, likes: liked ? p.likes + 1 : p.likes - 1 };
     }));
   };
 
-  const downloadPalette = (palette => {
-    const blob = new Blob([JSON.stringify(palette)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${palette.name}.json`;
+  const download = (palette) => {
+    const blob = new Blob([JSON.stringify(palette, null, 2)], { type: 'application/json' });
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `${palette.name}.json` });
     a.click();
-    URL.revokeObjectURL(url);
-   }) 
-    
- 
+    URL.revokeObjectURL(a.href);
+    showToast('Palette downloaded!');
+  };
 
-  const sharePalette = (palette) => {
+  const share = (palette) => {
     if (navigator.share) {
-      navigator.share({
-        title: palette.name,
-        url: `https://color-palette-generator.vercel.app/palette/${palette.id}`,
-        text: `Check out this beautiful color palette by ${palette.author}!`,
-      })
-       .then(() => showNotification('Palette shared!','success'))
-       .catch(() => showNotification('Failed to share palette', 'error'));
+      navigator.share({ title: palette.name, text: `Check out this palette by ${palette.author}!` })
+        .then(() => showToast('Shared!'))
+        .catch(() => {});
     } else {
-      showNotification('Sharing not supported on this device', 'error');
+      navigator.clipboard.writeText(palette.colors.join(', '));
+      showToast('Colors copied to clipboard!');
     }
   };
-  
-  
-  // Filter and sort palettes
-  const filteredPalettes = palettes.filter(palette => {
-    const matchesTag = filterTag === 'all' || palette.tags.includes(filterTag);
-    const matchesSearch = !searchTerm || 
-      palette.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      palette.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesTag && matchesSearch;
-  });
-  
-  const sortedPalettes = [...filteredPalettes].sort((a, b) => {
-    if (sortBy === 'popular') return b.likes - a.likes;
-    if (sortBy === 'newest') return new Date(b.createdAt) - new Date(a.createdAt);
-    return 0;
-  });
-  
-  // Available tags for filtering
-  const tags = ['all', 'bright', 'dark', 'pastel', 'neon', 'vintage', 'random', 'new'];
+
+  const filtered = palettes
+    .filter(p => filterTag === 'all' || p.tags.includes(filterTag))
+    .filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.tags.some(t => t.includes(search.toLowerCase())))
+    .sort((a, b) => sortBy === 'popular' ? b.likes - a.likes : new Date(b.createdAt) - new Date(a.createdAt));
 
   return (
-    <div className="bg-gray-50 min-h-screen w-full font-sans">
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
-        <div className="max-w-screen-xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
-          <div className="flex items-center space-x-3 mb-4 md:mb-0">
-            <div className="font-bold text-2xl bg-gradient-to-r from-purple-600 to-blue-500 text-transparent bg-clip-text">ColorPalettes</div>
-            <div className="hidden md:flex space-x-1">
-              {['red', 'yellow', 'green', 'blue', 'purple'].map(color => (
-                <div key={color} className={`w-4 h-4 bg-${color}-500 rounded-full`}></div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4 w-full md:w-auto">
-            <div className="relative flex-grow md:flex-grow-0">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <LuSearch size={16} className="text-gray-400" />
-              </div>
-              <input 
-                type="text"
-                placeholder="Search palettes..." 
-                className="pl-10 pr-4 py-2 border rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              {searchTerm && (
-                <button 
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setSearchTerm('')}
-                >
-                  <LuX size={16} className="text-gray-400 hover:text-gray-600" />
+      <header className="bg-white sticky top-0 z-20" style={{ borderBottom: `1px solid ${LI_BORDER}` }}>
+        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center gap-3">
+          <div className="flex-1 flex items-center gap-3">
+            <h1 className="text-base font-bold whitespace-nowrap" style={{ color: LI_TEXT }}>Color Palettes</h1>
+            <div className="relative flex-1 max-w-xs">
+              <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: LI_MUTED }} />
+              <input value={search} onChange={e => setSearch(e.target.value)}
+                placeholder="Search palettes..."
+                className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg outline-none"
+                style={{ backgroundColor: '#F3F2EF', border: `1px solid ${LI_BORDER}`, color: LI_TEXT }}
+                onFocus={e => e.target.style.borderColor = LI_BLUE}
+                onBlur={e => e.target.style.borderColor = LI_BORDER} />
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2" style={{ color: LI_MUTED }}>
+                  <FaXmark className="text-xs" />
                 </button>
               )}
             </div>
-            
-            <button 
-              onClick={handleCreatePalette}
-              className="bg-gradient-to-r from-purple-600 to-blue-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:from-purple-700 hover:to-blue-600 transition shadow-sm hover:shadow"
-            >
-              <LuPlus size={16} />
-              <span className="hidden md:inline">Create</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={handleRefresh}
+              className="p-2 rounded-lg transition-colors" style={{ color: LI_MUTED, backgroundColor: '#F3F2EF' }}
+              title="Refresh">
+              <FaArrowRotateRight className="text-sm" />
+            </button>
+            <div className="flex items-center rounded-lg overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
+              {[['grid', FaTableCells], ['list', FaList]].map(([v, Icon]) => (
+                <button key={v} onClick={() => setView(v)}
+                  className="p-2 transition-colors"
+                  style={{ backgroundColor: view === v ? '#EEF3F8' : '#fff', color: view === v ? LI_BLUE : LI_MUTED }}>
+                  <Icon className="text-sm" />
+                </button>
+              ))}
+            </div>
+            <button onClick={handleCreate}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white transition-colors"
+              style={{ backgroundColor: LI_BLUE }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#004182'}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = LI_BLUE}>
+              <FaPlus className="text-xs" /> Create
             </button>
           </div>
         </div>
       </header>
-      
+
       {/* Filters */}
-      <div className="bg-white border-b sticky top-16 z-10">
-        <div className="max-w-screen-xl mx-auto px-4 py-3 flex flex-wrap md:flex-nowrap justify-between items-center">
-          <div className="flex space-x-1 overflow-x-auto scrollbar-hide pb-1 flex-grow">
-            {tags.map(tag => (
-              <button
-                key={tag}
-                className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
-                  filterTag === tag 
-                    ? 'bg-purple-600 text-white shadow-sm' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-                onClick={() => setFilterTag(tag)}
-              >
-                {tag.charAt(0).toUpperCase() + tag.slice(1)}
+      <div className="bg-white sticky top-[57px] z-10" style={{ borderBottom: `1px solid ${LI_BORDER}` }}>
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center gap-3">
+          <FaFilter className="text-xs flex-shrink-0" style={{ color: LI_MUTED }} />
+          <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+            {TAGS.map(tag => (
+              <button key={tag} onClick={() => setFilterTag(tag)}
+                className="px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all"
+                style={{
+                  backgroundColor: filterTag === tag ? LI_BLUE : '#F3F2EF',
+                  color: filterTag === tag ? '#fff' : LI_MUTED,
+                  border: `1px solid ${filterTag === tag ? LI_BLUE : 'transparent'}`,
+                }}>
+                {tag === 'all' ? 'All' : tag.charAt(0).toUpperCase() + tag.slice(1)}
               </button>
             ))}
           </div>
-          
-          <div className="flex items-center space-x-4 mt-2 md:mt-0 ml-auto">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm text-gray-600">Sort:</label>
-              <select 
-                className="border rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="popular">Popular</option>
-                <option value="newest">Newest</option>
-              </select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button 
-                onClick={() => setView('grid')}
-                className={`p-2 rounded-lg hover:bg-gray-100 ${view === 'grid' ? 'bg-gray-200' : ''}`}
-              >
-                <LuGrid2X2 size={18} />
-              </button>
-              <button 
-                onClick={() => setView('list')}
-                className={`p-2 rounded-lg hover:bg-gray-100 ${view === 'list' ? 'bg-gray-200' : ''}`}
-              >
-                <LuList size={18} />
-              </button>
-            </div>
+          <div className="ml-auto flex-shrink-0">
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+              className="text-xs px-2 py-1 rounded-lg outline-none"
+              style={{ border: `1px solid ${LI_BORDER}`, color: LI_MUTED, backgroundColor: '#fff' }}>
+              <option value="popular">Most Popular</option>
+              <option value="newest">Newest</option>
+            </select>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="max-w-screen-xl mx-auto px-4 py-6">
+      {/* Content */}
+      <main className="max-w-7xl mx-auto px-4 py-6">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white rounded-lg shadow-sm animate-pulse">
-                <div className="h-32 bg-gray-200"></div>
-                <div className="p-4">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="bg-white rounded-xl overflow-hidden animate-pulse" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <div className="h-24 bg-gray-100" />
+                <div className="p-3 space-y-2">
+                  <div className="h-3 bg-gray-100 rounded w-2/3" />
+                  <div className="h-3 bg-gray-100 rounded w-1/2" />
                 </div>
               </div>
             ))}
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <FaMagnifyingGlass className="text-4xl mx-auto mb-3" style={{ color: LI_BORDER }} />
+            <p className="text-sm" style={{ color: LI_MUTED }}>No palettes found. Try a different search.</p>
+          </div>
         ) : (
-          <>
-            {sortedPalettes.length === 0 ? (
-              <div className="text-center py-12">
-                <LuSearch size={48} className="mx-auto text-gray-300 mb-4" />
-                <p className="text-gray-500">No palettes found</p>
-              </div>
-            ) : (
-              <div className={`${view === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'space-y-4'} gap-6`}>
-                {sortedPalettes.map(palette => (
-                  <PaletteCard 
-                    key={palette.id}
-                    palette={palette}
-                    onToggleLike={toggleLike}
-                    onCopyColor={copyToClipboard}
-                    onDownload={downloadPalette}
-                    onShare={sharePalette}
-                  />
-                ))}
-              </div>
-            )}
-          </>
+          <div className={view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
+            {filtered.map(palette => (
+              <PaletteCard
+                key={palette.id}
+                palette={palette}
+                onToggleLike={toggleLike}
+                onCopyColor={copyColor}
+                onDownload={download}
+                onShare={share}
+              />
+            ))}
+          </div>
+        )}
+
+        {!isLoading && filtered.length > 0 && (
+          <p className="text-center text-xs mt-6" style={{ color: LI_MUTED }}>
+            Showing {filtered.length} palette{filtered.length !== 1 ? 's' : ''}
+          </p>
         )}
       </main>
 
-      {/* Notification System */}
-      <Notification notification={notification} />
-
-      {/* Create Palette FAB */}
-      <button 
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-purple-600 to-blue-500 text-white p-4 rounded-full shadow-lg hover:from-purple-700 hover:to-blue-600 transition transform hover:scale-105 active:scale-95"
-        onClick={handleCreatePalette}
-      >
-        <LuPlus size={24} />
+      {/* FAB */}
+      <button onClick={handleCreate}
+        className="fixed bottom-6 right-6 w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-white transition-all hover:scale-105 active:scale-95"
+        style={{ backgroundColor: LI_BLUE }}>
+        <FaPlus />
       </button>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 text-sm font-medium"
+            style={{
+              backgroundColor: '#fff',
+              border: `1px solid ${LI_BORDER}`,
+              color: toast.type === 'info' ? LI_MUTED : LI_TEXT,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            }}>
+            <FaCheck className="text-xs" style={{ color: '#057642' }} />
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
-};
-
-export default ColorPaletteExplorer;
+}
