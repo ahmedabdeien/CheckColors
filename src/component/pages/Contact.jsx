@@ -1,178 +1,164 @@
 import { useState } from 'react';
-import { LuMail, LuPhone, LuMapPin, LuSend, LuClock, LuCheckCheck  } from 'react-icons/lu';
+import { FaEnvelope, FaPhone, FaLocationDot, FaPaperPlane, FaClock, FaCircleCheck } from 'react-icons/fa6';
 
-const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
+const LI_BLUE = '#0A66C2';
+const LI_BG = '#F3F2EF';
+const LI_BORDER = '#E0DFDC';
+const LI_TEXT = '#000000E6';
+const LI_MUTED = '#00000099';
+
+const contactInfo = [
+  {
+    icon: FaEnvelope,
+    title: 'Email',
+    lines: ['support@checkcolors.com', 'sales@checkcolors.com'],
+  },
+  {
+    icon: FaPhone,
+    title: 'Phone',
+    lines: ['+1 (555) 123-4567', 'Mon-Fri: 9am - 5pm PST'],
+  },
+  {
+    icon: FaLocationDot,
+    title: 'Office',
+    lines: ['123 Color Street', 'San Francisco, CA 94107'],
+  },
+];
+
+const hours = [
+  'Monday - Friday: 9am - 6pm PST',
+  'Saturday: 10am - 4pm PST',
+  'Sunday: Closed',
+];
+
+export default function Contact() {
+  const [formData, setFormData] = useState({ name: '', email: '', subject: '', message: '' });
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Add your form submission logic here
-    console.log('Form submitted:', formData);
     setIsSubmitted(true);
     setFormData({ name: '', email: '', subject: '', message: '' });
   };
 
+  const inputStyle = {
+    border: `1px solid ${LI_BORDER}`,
+    borderRadius: 6,
+    padding: '10px 12px',
+    fontSize: 14,
+    color: LI_TEXT,
+    width: '100%',
+    outline: 'none',
+    background: '#fff',
+  };
+
+  const handleFocus = e => e.target.style.borderColor = LI_BLUE;
+  const handleBlur = e => e.target.style.borderColor = LI_BORDER;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-500 text-white py-16">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
-          <p className="text-xl md:text-2xl max-w-2xl mx-auto">
-            Have questions or need support? We're here to help! Reach out to our team anytime.
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
+
+      {/* Header */}
+      <div className="bg-white border-b" style={{ borderColor: LI_BORDER }}>
+        <div className="max-w-5xl mx-auto px-4 py-12 text-center">
+          <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-3"
+            style={{ backgroundColor: '#EEF3F8', color: LI_BLUE }}>Contact</span>
+          <h1 className="text-3xl font-bold mb-2" style={{ color: LI_TEXT }}>Get in Touch</h1>
+          <p className="text-sm" style={{ color: LI_MUTED }}>
+            Have questions or need support? We're here to help!
           </p>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 py-12">
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* Contact Form */}
-          <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg">
-            <h2 className="text-2xl font-bold mb-6">Send us a message</h2>
-            
-            {isSubmitted ? (
-              <div className="text-center p-8">
-                <LuCheckCheck  className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">Message Sent!</h3>
-                <p className="text-gray-600">We'll get back to you within 24 hours.</p>
+      <div className="max-w-5xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-6">
+
+        {/* Form */}
+        <div className="bg-white rounded-xl p-8" style={{ border: `1px solid ${LI_BORDER}` }}>
+          <h2 className="text-lg font-bold mb-6" style={{ color: LI_TEXT }}>Send us a message</h2>
+
+          {isSubmitted ? (
+            <div className="text-center py-10">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
+                style={{ backgroundColor: '#F0FFF6' }}>
+                <FaCircleCheck style={{ fontSize: 28, color: '#057642' }} />
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-gray-700 mb-2">Name</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 mb-2">Subject</label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-gray-700 mb-2">Message</label>
-                  <textarea
-                    rows="4"
-                    required
-                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  ></textarea>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-700 transition-all flex items-center justify-center gap-2"
-                >
-                  <LuSend className="w-5 h-5" />
-                  Send Message
-                </button>
-              </form>
-            )}
-          </div>
-
-          {/* Contact Info */}
-          <div className="space-y-8">
-            <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg">
-              <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="bg-purple-100 p-3 rounded-full">
-                    <LuMail className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">Email</h3>
-                    <p className="text-gray-600">support@colorpalettes.com</p>
-                    <p className="text-gray-600">sales@colorpalettes.com</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="bg-purple-100 p-3 rounded-full">
-                    <LuPhone className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">Phone</h3>
-                    <p className="text-gray-600">+1 (555) 123-4567</p>
-                    <p className="text-gray-600">Mon-Fri: 9am - 5pm PST</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="bg-purple-100 p-3 rounded-full">
-                    <LuMapPin className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-1">Office</h3>
-                    <p className="text-gray-600">123 Color Street</p>
-                    <p className="text-gray-600">San Francisco, CA 94107</p>
-                  </div>
-                </div>
-              </div>
+              <h3 className="font-semibold text-base mb-1" style={{ color: LI_TEXT }}>Message Sent!</h3>
+              <p className="text-sm" style={{ color: LI_MUTED }}>We'll get back to you within 24 hours.</p>
+              <button onClick={() => setIsSubmitted(false)}
+                className="mt-5 px-5 py-2 text-sm font-semibold rounded-full"
+                style={{ backgroundColor: LI_BLUE, color: '#fff' }}>
+                Send Another
+              </button>
             </div>
-
-            {/* Hours */}
-            <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg">
-              <h2 className="text-2xl font-bold mb-6">Working Hours</h2>
-              <div className="flex items-start gap-4">
-                <div className="bg-purple-100 p-3 rounded-full">
-                  <LuClock className="w-6 h-6 text-purple-600" />
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {[
+                { id: 'name', label: 'Full Name', type: 'text' },
+                { id: 'email', label: 'Email', type: 'email' },
+                { id: 'subject', label: 'Subject', type: 'text' },
+              ].map(({ id, label, type }) => (
+                <div key={id}>
+                  <label className="block text-sm font-medium mb-1.5" style={{ color: LI_TEXT }}>{label}</label>
+                  <input type={type} required style={inputStyle}
+                    value={formData[id]}
+                    onChange={e => setFormData({ ...formData, [id]: e.target.value })}
+                    onFocus={handleFocus} onBlur={handleBlur} />
                 </div>
-                <div className="space-y-2">
-                  <p className="font-medium">Monday - Friday: 9am - 6pm PST</p>
-                  <p className="font-medium">Saturday: 10am - 4pm PST</p>
-                  <p className="font-medium">Sunday: Closed</p>
-                </div>
+              ))}
+              <div>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: LI_TEXT }}>Message</label>
+                <textarea rows={4} required style={inputStyle}
+                  value={formData.message}
+                  onChange={e => setFormData({ ...formData, message: e.target.value })}
+                  onFocus={handleFocus} onBlur={handleBlur} />
               </div>
-            </div>
-          </div>
+              <button type="submit"
+                className="w-full py-2.5 rounded-full text-white text-sm font-semibold flex items-center justify-center gap-2"
+                style={{ backgroundColor: LI_BLUE }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = '#004182'}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = LI_BLUE}>
+                <FaPaperPlane className="text-xs" /> Send Message
+              </button>
+            </form>
+          )}
         </div>
 
-        {/* Map Section */}
-        <div className="mt-12 rounded-xl overflow-hidden shadow-lg">
-          <iframe
-            title="Office Location"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.693325038731!2d-122.419415584683!3d37.75761797975952!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x808f7fd4f7b4f1c5%3A0xd3985d1b28ae58e5!2sSan%20Francisco%2C%20CA%2C%20USA!5e0!3m2!1sen!2suk!4v1629787648427!5m2!1sen!2suk"
-            width="100%"
-            height="400"
-            style={{ border: 0 }}
-            allowFullScreen=""
-            loading="lazy"
-          ></iframe>
+        {/* Info */}
+        <div className="space-y-4">
+          <div className="bg-white rounded-xl p-6" style={{ border: `1px solid ${LI_BORDER}` }}>
+            <h2 className="text-base font-bold mb-5" style={{ color: LI_TEXT }}>Contact Information</h2>
+            <div className="space-y-5">
+              {contactInfo.map(({ icon: Icon, title, lines }) => (
+                <div key={title} className="flex items-start gap-4">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: '#EEF3F8' }}>
+                    <Icon style={{ color: LI_BLUE, fontSize: 14 }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold mb-0.5" style={{ color: LI_TEXT }}>{title}</p>
+                    {lines.map(l => <p key={l} className="text-xs" style={{ color: LI_MUTED }}>{l}</p>)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl p-6" style={{ border: `1px solid ${LI_BORDER}` }}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: '#EEF3F8' }}>
+                <FaClock style={{ color: LI_BLUE, fontSize: 14 }} />
+              </div>
+              <h2 className="text-base font-bold" style={{ color: LI_TEXT }}>Working Hours</h2>
+            </div>
+            <div className="space-y-2">
+              {hours.map(h => (
+                <p key={h} className="text-xs" style={{ color: LI_MUTED }}>{h}</p>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default Contact;
+}

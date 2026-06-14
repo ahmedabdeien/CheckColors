@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   FaBars, FaXmark, FaChevronDown, FaPalette, FaWandMagicSparkles,
   FaRightFromBracket, FaGauge, FaShieldHalved, FaCrown, FaMagnifyingGlass,
-  FaEye, FaImage, FaShuffle, FaCircleHalfStroke
+  FaEye, FaImage, FaShuffle, FaCircleHalfStroke,
+  FaHouse, FaCircleInfo, FaEnvelope, FaTag
 } from 'react-icons/fa6';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -33,10 +34,10 @@ const Navbar = () => {
   const planLabel = plan === 'pro' ? 'Pro' : plan === 'enterprise' ? 'Enterprise' : null;
 
   const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/About', label: 'About' },
-    { to: '/Contact', label: 'Contact' },
-    { to: '/pricing', label: 'Pricing' },
+    { to: '/', label: 'Home', icon: FaHouse },
+    { to: '/About', label: 'About', icon: FaCircleInfo },
+    { to: '/Contact', label: 'Contact', icon: FaEnvelope },
+    { to: '/pricing', label: 'Pricing', icon: FaTag },
   ];
 
   const services = [
@@ -74,14 +75,14 @@ const Navbar = () => {
 
         {/* Nav Links */}
         <div className="hidden md:flex items-center gap-1 ml-2">
-          {navLinks.map(({ to, label }) => (
+          {navLinks.map(({ to, label, icon: Icon }) => (
             <Link key={to} to={to}
-              className="px-3 py-1.5 text-sm font-medium rounded transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded transition-colors"
               style={{ color: isActive(to) ? '#0A66C2' : '#666', backgroundColor: isActive(to) ? '#EEF3F8' : 'transparent' }}
               onMouseEnter={e => !isActive(to) && (e.currentTarget.style.backgroundColor = '#F3F2EF')}
               onMouseLeave={e => !isActive(to) && (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              {label}
+              <Icon className="text-xs" /> {label}
             </Link>
           ))}
 
@@ -220,10 +221,10 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="md:hidden bg-white border-t" style={{ borderColor: '#E0DFDC' }}>
           <div className="px-4 py-2 space-y-1">
-            {navLinks.map(({ to, label }) => (
-              <Link key={to} to={to} className="block px-3 py-2 text-sm rounded font-medium"
+            {navLinks.map(({ to, label, icon: Icon }) => (
+              <Link key={to} to={to} className="flex items-center gap-2 px-3 py-2 text-sm rounded font-medium"
                 style={{ color: isActive(to) ? '#0A66C2' : '#333', backgroundColor: isActive(to) ? '#EEF3F8' : 'transparent' }}>
-                {label}
+                <Icon className="text-xs" style={{ color: isActive(to) ? '#0A66C2' : '#666' }} /> {label}
               </Link>
             ))}
             <div className="border-t pt-2 mt-2" style={{ borderColor: '#E0DFDC' }}>

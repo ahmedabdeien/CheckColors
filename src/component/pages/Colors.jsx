@@ -126,136 +126,133 @@ export default function Colors() {
     color.value.toLowerCase().includes(filter.toLowerCase()))
   );
 
+  const LI_BLUE = '#0A66C2';
+  const LI_BG = '#F3F2EF';
+  const LI_BORDER = '#E0DFDC';
+  const LI_TEXT = '#000000E6';
+  const LI_MUTED = '#00000099';
+
   return (
-    <div className="p-4 md:p-8 bg-gray-50 rounded-lg">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h2 className="text-2xl font-bold">Color Palette (200 Colors)</h2>
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
-          <input
-            type="text"
-            placeholder="Search colors..."
-            className="px-3 py-2 border rounded-md text-sm"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-          <div className="flex space-x-2">
-            <button 
-              className={`px-3 py-1 text-sm rounded-md border ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-white'}`}
-              onClick={() => setViewMode('grid')}
-            >
-              Grid
-            </button>
-            <button 
-              className={`px-3 py-1 text-sm rounded-md border ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-white'}`}
-              onClick={() => setViewMode('list')}
-            >
-              List
-            </button>
-            <button 
-              className="px-3 py-1 text-sm rounded-md border bg-white"
-              onClick={() => setShowHex(!showHex)}
-            >
-              {showHex ? 'Show RGB' : 'Show HEX'}
-            </button>
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} className="p-4 md:p-8">
+      <div className="max-w-screen-xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-5 gap-3">
+          <h2 className="text-2xl font-bold" style={{ color: LI_TEXT }}>Color Palette (200 Colors)</h2>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              placeholder="Search colors..."
+              className="px-3 py-2 rounded-lg text-sm outline-none"
+              style={{ border: `1px solid ${LI_BORDER}`, color: LI_TEXT, backgroundColor: '#fff' }}
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
+              onFocus={e => e.target.style.borderColor = LI_BLUE}
+              onBlur={e => e.target.style.borderColor = LI_BORDER}
+            />
+            <div className="flex gap-2">
+              {[['grid', 'Grid'], ['list', 'List']].map(([mode, label]) => (
+                <button key={mode}
+                  className="px-3 py-1.5 text-sm rounded-lg"
+                  style={{
+                    backgroundColor: viewMode === mode ? LI_BLUE : '#fff',
+                    color: viewMode === mode ? '#fff' : LI_MUTED,
+                    border: `1px solid ${LI_BORDER}`,
+                  }}
+                  onClick={() => setViewMode(mode)}>
+                  {label}
+                </button>
+              ))}
+              <button
+                className="px-3 py-1.5 text-sm rounded-lg"
+                style={{ backgroundColor: '#fff', color: LI_MUTED, border: `1px solid ${LI_BORDER}` }}
+                onClick={() => setShowHex(!showHex)}>
+                {showHex ? 'RGB' : 'HEX'}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      
-      <div className="mb-6 overflow-x-auto">
-        <div className="flex space-x-2 pb-2">
-          <button 
-            className={`px-3 py-1 text-sm rounded-md whitespace-nowrap ${activeCategory === 'all' ? 'bg-blue-500 text-white' : 'bg-white border'}`}
-            onClick={() => setActiveCategory('all')}
-          >
-            All Colors
-          </button>
-          {categories.map(category => (
-            <button 
-              key={category}
-              className={`px-3 py-1 text-sm rounded-md whitespace-nowrap ${activeCategory === category ? 'bg-blue-500 text-white' : 'bg-white border'}`}
-              onClick={() => setActiveCategory(category)}
-            >
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-4">
-          {filteredColors.map((color, index) => (
-            <div 
-              key={`${color.category}-${color.name}`} 
-              className="flex flex-col rounded-lg overflow-hidden shadow-md transition-all hover:shadow-lg hover:scale-105"
-              onClick={() => copyToClipboard(color.value, `${color.category}-${color.name}`)}
-            >
-              <div 
-                style={{ 
-                  backgroundColor: color.value,
-                  color: getTextColor(color.value)
-                }} 
-                className="w-full h-16 flex items-center justify-center cursor-pointer relative"
-              >
-                {copied === `${color.category}-${color.name}` && (
-                  <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center text-white">
-                    Copied!
+        <div className="mb-5 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          <div className="flex gap-2 pb-1">
+            {['all', ...categories].map(cat => (
+              <button key={cat}
+                className="px-3 py-1 text-xs rounded-full whitespace-nowrap"
+                style={{
+                  backgroundColor: activeCategory === cat ? LI_BLUE : '#fff',
+                  color: activeCategory === cat ? '#fff' : LI_MUTED,
+                  border: `1px solid ${activeCategory === cat ? LI_BLUE : LI_BORDER}`,
+                }}
+                onClick={() => setActiveCategory(cat)}>
+                {cat === 'all' ? 'All Colors' : cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {viewMode === 'grid' ? (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+            {filteredColors.map(color => (
+              <div key={`${color.category}-${color.name}`}
+                className="flex flex-col rounded-lg overflow-hidden cursor-pointer hover:scale-105 transition-transform"
+                style={{ border: `1px solid ${LI_BORDER}` }}
+                onClick={() => copyToClipboard(color.value, `${color.category}-${color.name}`)}>
+                <div className="w-full h-14 flex items-center justify-center relative"
+                  style={{ backgroundColor: color.value, color: getTextColor(color.value) }}>
+                  {copied === `${color.category}-${color.name}` && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center text-white text-xs font-medium">
+                      Copied!
+                    </div>
+                  )}
+                </div>
+                <div className="p-1.5 bg-white">
+                  <div className="text-xs font-medium truncate" style={{ color: LI_TEXT }}>{color.name}</div>
+                  <div className="text-[10px] font-mono mt-0.5" style={{ color: LI_MUTED }}>
+                    {showHex ? color.value : hexToRgb(color.value)}
                   </div>
-                )}
-              </div>
-              <div className="p-2 bg-white">
-                <div className="text-xs font-medium truncate">{color.name}</div>
-                <div className="text-xs text-gray-500 font-mono mt-1">
-                  {showHex ? color.value : hexToRgb(color.value)}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-md border">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Color</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredColors.map((color, index) => (
-                <tr 
-                  key={`${color.category}-${color.name}`}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => copyToClipboard(color.value, `${color.category}-${color.name}`)}
-                >
-                  <td className="px-4 py-2 whitespace-nowrap relative">
-                    <div className="w-8 h-8 rounded" style={{ backgroundColor: color.value }}></div>
-                    {copied === `${color.category}-${color.name}` && (
-                      <span className="absolute text-xs font-medium text-green-600 ml-3">Copied!</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{color.name}</div>
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">{color.category}</div>
-                  </td>
-                  <td className="px-4 py-2 whitespace-nowrap">
-                    <div className="text-sm font-mono text-gray-500">
-                      {showHex ? color.value : hexToRgb(color.value)}
-                    </div>
-                  </td>
+            ))}
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-xl" style={{ border: `1px solid ${LI_BORDER}` }}>
+            <table className="min-w-full divide-y" style={{ borderColor: LI_BORDER }}>
+              <thead style={{ backgroundColor: '#F3F2EF' }}>
+                <tr>
+                  {['Color', 'Name', 'Category', 'Value'].map(h => (
+                    <th key={h} className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider"
+                      style={{ color: LI_MUTED }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y" style={{ borderColor: LI_BORDER }}>
+                {filteredColors.map(color => (
+                  <tr key={`${color.category}-${color.name}`}
+                    className="cursor-pointer"
+                    style={{ borderColor: LI_BORDER }}
+                    onClick={() => copyToClipboard(color.value, `${color.category}-${color.name}`)}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F3F2EF'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fff'}>
+                    <td className="px-4 py-2 whitespace-nowrap relative">
+                      <div className="w-8 h-8 rounded-lg" style={{ backgroundColor: color.value }} />
+                      {copied === `${color.category}-${color.name}` && (
+                        <span className="absolute text-xs font-medium ml-3" style={{ color: '#057642' }}>Copied!</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap text-xs font-medium" style={{ color: LI_TEXT }}>{color.name}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-xs" style={{ color: LI_MUTED }}>{color.category}</td>
+                    <td className="px-4 py-2 whitespace-nowrap text-xs font-mono" style={{ color: LI_MUTED }}>
+                      {showHex ? color.value : hexToRgb(color.value)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center mt-5">
+          <p className="text-xs" style={{ color: LI_MUTED }}>Click on any color to copy its {showHex ? 'hex' : 'RGB'} code</p>
+          <p className="text-xs" style={{ color: LI_MUTED }}>Showing {filteredColors.length} of {colors.length} colors</p>
         </div>
-      )}
-      
-      <div className="flex justify-between items-center mt-6">
-        <p className="text-sm text-gray-500">Click on any color to copy its {showHex ? 'hex' : 'RGB'} code to clipboard</p>
-        <p className="text-sm text-gray-500">Showing {filteredColors.length} of {colors.length} colors</p>
       </div>
     </div>
   );

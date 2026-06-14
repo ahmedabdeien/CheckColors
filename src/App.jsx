@@ -46,7 +46,7 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Toaster position="top-center" toastOptions={{ style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155' } }} />
+        <Toaster position="top-center" toastOptions={{ style: { background: '#fff', color: '#000000E6', border: '1px solid #E0DFDC', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' } }} />
         <Routes>
           {/* Public with layout */}
           <Route path="/" element={<PublicLayout><Home /></PublicLayout>} />

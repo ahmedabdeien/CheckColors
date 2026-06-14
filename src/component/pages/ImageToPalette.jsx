@@ -1,20 +1,17 @@
 import { useState, useEffect } from 'react';
-import { 
-  LuUpload, 
-  LuCopy, 
-  LuCheck, 
-  LuPalette, 
-  LuImage, 
-  LuDownload, 
-  LuInfo, 
-  LuX, 
-  LuRefreshCw,
-  LuClipboard,
-  LuSave
-} from 'react-icons/lu';
+import {
+  FaUpload, FaCopy, FaCheck, FaPalette, FaImage,
+  FaDownload, FaCircleInfo, FaXmark, FaArrowRotateLeft, FaClipboard
+} from 'react-icons/fa6';
 import { useDropzone } from 'react-dropzone';
 import { Vibrant } from 'node-vibrant/browser';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const LI_BLUE = '#0A66C2';
+const LI_BG = '#F3F2EF';
+const LI_BORDER = '#E0DFDC';
+const LI_TEXT = '#000000E6';
+const LI_MUTED = '#00000099';
 
 const ImageToPalette = () => {
   const [imageUrl, setImageUrl] = useState(null);
@@ -176,115 +173,91 @@ const ImageToPalette = () => {
   };
 
   return (
-     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-8">
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} className="p-4 md:p-8">
       {/* Notification */}
       <AnimatePresence>
         {notification && (
-          <motion.div 
-            className={`fixed top-4 right-4 z-50 bg-white shadow-xl rounded-lg px-4 py-3 flex items-center space-x-3 border-l-[6px] ${
-              notification.type === 'success' ? 'border-emerald-500' : 
-              notification.type === 'error' ? 'border-rose-500' : 
-              'border-sky-500'
-            }`}
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
+          <motion.div
+            className="fixed top-4 right-4 z-50 bg-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3"
+            style={{ border: `1px solid ${LI_BORDER}` }}
+            initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }}
           >
-            <div className={`p-2 rounded-full bg-opacity-20 ${
-              notification.type === 'success' ? 'bg-emerald-500' : 
-              notification.type === 'error' ? 'bg-rose-500' : 
-              'bg-sky-500'
-            }`}>
-              {notification.type === 'success' && <LuCheck className="text-emerald-600" />}
-              {notification.type === 'error' && <LuX className="text-rose-600" />}
-              {notification.type === 'info' && <LuInfo className="text-sky-600" />}
+            <div className="p-1.5 rounded-full"
+              style={{ backgroundColor: notification.type === 'success' ? '#F0FFF6' : '#FFF0F0' }}>
+              {notification.type === 'success' && <FaCheck style={{ color: '#057642', fontSize: 12 }} />}
+              {notification.type === 'error' && <FaXmark style={{ color: '#CC1016', fontSize: 12 }} />}
+              {notification.type === 'info' && <FaCircleInfo style={{ color: LI_BLUE, fontSize: 12 }} />}
             </div>
-            <span className="font-medium text-gray-700">{notification.message}</span>
+            <span className="text-sm font-medium" style={{ color: LI_TEXT }}>{notification.message}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
       <div className="max-w-6xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500 mb-2 flex items-center gap-3">
-            <LuPalette className="w-8 h-8 text-purple-600" />
+          <h1 className="text-2xl font-bold mb-1 flex items-center gap-3" style={{ color: LI_TEXT }}>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#EEF3F8' }}>
+              <FaPalette style={{ color: LI_BLUE, fontSize: 16 }} />
+            </div>
             Image to Palette Generator
           </h1>
-          <p className="text-gray-600 md:text-lg">Extract beautiful color palettes from your favorite images</p>
+          <p className="text-sm" style={{ color: LI_MUTED }}>Extract beautiful color palettes from your favorite images</p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="md:col-span-1">
-            {/* Upload Section */}
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl">
-              <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-500 text-white">
-                <h2 className="font-semibold text-xl flex items-center gap-2">
-                  <LuUpload className="w-5 h-5" />
-                  Upload Image
-                </h2>
+            {/* Upload */}
+            <div className="bg-white rounded-xl overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
+              <div className="px-4 py-3 border-b flex items-center gap-2" style={{ borderColor: LI_BORDER }}>
+                <FaUpload style={{ color: LI_BLUE, fontSize: 14 }} />
+                <h2 className="font-semibold text-sm" style={{ color: LI_TEXT }}>Upload Image</h2>
               </div>
-              <div 
+              <div
                 {...getRootProps()}
-                className={`border-3 border-dashed m-4 rounded-xl p-8 text-center cursor-pointer transition-all duration-300 group
-                  ${isDragActive ? 'border-purple-500 bg-purple-50 scale-[0.98]' : 'border-gray-200 hover:border-purple-400'}
-                  ${error ? 'animate-shake border-rose-500 bg-rose-50' : ''}`}
+                className="border-2 border-dashed m-4 rounded-xl p-8 text-center cursor-pointer transition-all"
+                style={{ borderColor: isDragActive ? LI_BLUE : LI_BORDER, backgroundColor: isDragActive ? '#EEF3F8' : '#fff' }}
               >
                 <input {...getInputProps()} />
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    <div className="p-4 bg-purple-100 rounded-full group-hover:bg-purple-200 transition-colors">
-                      <LuUpload className="w-8 h-8 text-purple-600 group-hover:text-purple-700" />
-                    </div>
-                  </div>
-                  {isDragActive ? (
-                    <p className="text-purple-600 font-medium">Drop to generate palette!</p>
-                  ) : (
-                    <>
-                      <p className="text-gray-700 font-medium">
-                        Drag & drop or <span className="text-purple-600">browse</span>
-                      </p>
-                      <p className="text-sm text-gray-500 mt-1">
-                        Supports: JPEG, PNG, WEBP
-                      </p>
-                    </>
-                  )}
-                  {error && (
-                    <p className="text-rose-500 mt-2 font-medium animate-pulse">{error}</p>
-                  )}
+                <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
+                  style={{ backgroundColor: '#EEF3F8' }}>
+                  <FaUpload style={{ color: LI_BLUE, fontSize: 18 }} />
                 </div>
+                {isDragActive ? (
+                  <p className="text-sm font-medium" style={{ color: LI_BLUE }}>Drop to generate palette!</p>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium" style={{ color: LI_TEXT }}>
+                      Drag & drop or <span style={{ color: LI_BLUE }}>browse</span>
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: LI_MUTED }}>Supports: JPEG, PNG, WEBP</p>
+                  </>
+                )}
+                {error && <p className="text-xs mt-2 font-medium" style={{ color: '#CC1016' }}>{error}</p>}
               </div>
             </div>
 
             {/* Tips */}
             {showTips && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-xl shadow-lg p-4 mt-6 border border-gray-100"
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                className="bg-white rounded-xl p-4 mt-4" style={{ border: `1px solid ${LI_BORDER}` }}>
                 <div className="flex justify-between items-center mb-3">
-                  <h2 className="font-semibold text-lg flex items-center gap-2 text-gray-700">
-                    <LuInfo className="text-sky-500 w-5 h-5" />
-                    Pro Tips
+                  <h2 className="font-semibold text-sm flex items-center gap-2" style={{ color: LI_TEXT }}>
+                    <FaCircleInfo style={{ color: LI_BLUE, fontSize: 13 }} /> Pro Tips
                   </h2>
-                  <button 
-                    onClick={() => setShowTips(false)}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                    aria-label="Close tips"
-                  >
-                    <LuX className="w-5 h-5" />
+                  <button onClick={() => setShowTips(false)} className="p-1 rounded hover:bg-gray-50">
+                    <FaXmark style={{ color: LI_MUTED, fontSize: 12 }} />
                   </button>
                 </div>
-                <ul className="space-y-3 text-gray-600 text-sm">
+                <ul className="space-y-2">
                   {[
                     'Use high-contrast images for vibrant palettes',
                     'Landscape photos often produce great results',
                     'Click color swatches to copy HEX codes',
-                    'Adjust palette name before saving'
+                    'Adjust palette name before saving',
                   ].map((tip, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <div className="w-2 h-2 mt-2 bg-purple-500 rounded-full flex-shrink-0" />
-                      <span>{tip}</span>
+                    <li key={i} className="flex items-start gap-2 text-xs" style={{ color: LI_MUTED }}>
+                      <div className="w-1.5 h-1.5 mt-1 rounded-full flex-shrink-0" style={{ backgroundColor: LI_BLUE }} />
+                      {tip}
                     </li>
                   ))}
                 </ul>
@@ -293,123 +266,84 @@ const ImageToPalette = () => {
           </div>
 
           <div className="md:col-span-2">
-            {/* Loading State */}
             {isLoading && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="bg-white rounded-xl shadow-lg p-8 text-center space-y-6"
-              >
-                <div className="space-y-4">
-                  <div className="animate-pulse bg-gradient-to-r from-purple-500 to-blue-500 h-2 w-32 rounded-full mx-auto" />
-                  <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto" />
-                  <p className="text-gray-600 font-medium">Analyzing image colors...</p>
-                  <div className="h-4 bg-gray-100 rounded-full w-48 mx-auto animate-pulse" />
-                </div>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="bg-white rounded-xl p-8 text-center" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <div className="w-12 h-12 border-4 rounded-full animate-spin mx-auto mb-4"
+                  style={{ borderColor: `${LI_BLUE}30`, borderTopColor: LI_BLUE }} />
+                <p className="text-sm font-medium" style={{ color: LI_TEXT }}>Analyzing image colors...</p>
               </motion.div>
             )}
 
-            {/* Results */}
             {imageUrl && !isLoading && (
               <AnimatePresence>
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-6"
-                >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
                   {/* Image Preview */}
-                  <motion.div 
-                    initial={{ y: 20 }}
-                    animate={{ y: 0 }}
-                    className="bg-white rounded-xl shadow-lg overflow-hidden"
-                  >
-                    <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-500 text-white flex justify-between items-center">
-                      <h2 className="font-semibold text-xl flex items-center gap-2">
-                        <LuImage className="w-5 h-5" />
-                        Image Preview
+                  <motion.div initial={{ y: 20 }} animate={{ y: 0 }}
+                    className="bg-white rounded-xl overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
+                    <div className="px-4 py-3 border-b flex justify-between items-center" style={{ borderColor: LI_BORDER }}>
+                      <h2 className="font-semibold text-sm flex items-center gap-2" style={{ color: LI_TEXT }}>
+                        <FaImage style={{ color: LI_BLUE, fontSize: 13 }} /> Image Preview
                       </h2>
-                      <button
-                        onClick={resetAll}
-                        className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-                        aria-label="Reset"
-                      >
-                        <LuRefreshCw className="w-5 h-5" />
+                      <button onClick={resetAll} className="p-1.5 rounded hover:bg-gray-50"
+                        title="Reset">
+                        <FaArrowRotateLeft style={{ color: LI_MUTED, fontSize: 12 }} />
                       </button>
                     </div>
                     <div className="p-4">
-                      <div className="aspect-square max-h-96 w-full bg-gray-50 rounded-lg overflow-hidden shadow-inner">
-                        <img 
-                          src={imageUrl} 
-                          alt="Uploaded preview" 
-                          className="w-full h-full object-contain"
-                        />
+                      <div className="aspect-square max-h-80 w-full rounded-lg overflow-hidden"
+                        style={{ backgroundColor: '#F3F2EF' }}>
+                        <img src={imageUrl} alt="Uploaded preview" className="w-full h-full object-contain" />
                       </div>
                     </div>
                   </motion.div>
 
-                  {/* Color Palette */}
+                  {/* Palette */}
                   {colors.length > 0 && (
-                    <motion.div 
-                      initial={{ y: 20 }}
-                      animate={{ y: 0 }}
-                      className="bg-white rounded-xl shadow-lg overflow-hidden"
-                    >
-                      <div className="p-4 bg-gradient-to-r from-purple-600 to-blue-500 text-white">
-                        <div className="flex justify-between items-center">
-                          <h2 className="font-semibold text-xl flex items-center gap-2">
-                            <LuPalette className="w-5 h-5" />
-                            <input
-                              type="text"
-                              value={paletteName}
-                              onChange={(e) => setPaletteName(e.target.value)}
-                              className="bg-transparent border-b-2 border-white/30 focus:border-white/80 placeholder-white/70 outline-none text-lg font-medium max-w-[60%] transition-colors"
-                              placeholder="Name your palette"
-                            />
-                          </h2>
-                          <div className="flex gap-2">
-                            <button 
-                              onClick={copyPalette}
-                              className="p-2 rounded-lg hover:bg-white/10 transition-colors tooltip"
-                              data-tooltip="Copy All"
-                            >
-                              <LuClipboard className="w-5 h-5" />
-                            </button>
-                            <button 
-                              onClick={downloadPalette}
-                              className="p-2 rounded-lg hover:bg-white/10 transition-colors tooltip"
-                              data-tooltip="Download"
-                            >
-                              <LuDownload className="w-5 h-5" />
-                            </button>
-                          </div>
+                    <motion.div initial={{ y: 20 }} animate={{ y: 0 }}
+                      className="bg-white rounded-xl overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
+                      <div className="px-4 py-3 border-b flex justify-between items-center" style={{ borderColor: LI_BORDER }}>
+                        <div className="flex items-center gap-2">
+                          <FaPalette style={{ color: LI_BLUE, fontSize: 13 }} />
+                          <input
+                            type="text"
+                            value={paletteName}
+                            onChange={e => setPaletteName(e.target.value)}
+                            className="text-sm font-semibold bg-transparent outline-none"
+                            style={{ color: LI_TEXT }}
+                            placeholder="Name your palette"
+                          />
+                        </div>
+                        <div className="flex gap-1">
+                          <button onClick={copyPalette} className="p-1.5 rounded hover:bg-gray-50" title="Copy All">
+                            <FaClipboard style={{ color: LI_MUTED, fontSize: 12 }} />
+                          </button>
+                          <button onClick={downloadPalette} className="p-1.5 rounded hover:bg-gray-50" title="Download">
+                            <FaDownload style={{ color: LI_MUTED, fontSize: 12 }} />
+                          </button>
                         </div>
                       </div>
                       <div className="p-4">
-                        <div className="grid grid-cols-6 gap-2 h-32">
+                        <div className="grid grid-cols-6 gap-2 h-28">
                           {colors.map((color, index) => (
                             <motion.div
                               key={index}
                               initial={{ scale: 0.9, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
                               transition={{ delay: index * 0.05 }}
-                              className="relative group cursor-pointer rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all"
+                              className="relative group cursor-pointer rounded-lg overflow-hidden"
                               style={{ backgroundColor: color }}
                               onClick={() => copyToClipboard(color)}
                             >
                               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                                <span 
-                                  className="px-3 py-1.5 rounded-full text-xs font-bold tracking-wide shadow-sm"
-                                  style={{ 
-                                    backgroundColor: color,
-                                    color: getContrastColor(color)
-                                  }}
-                                >
+                                <span className="px-2 py-1 rounded text-[10px] font-bold"
+                                  style={{ backgroundColor: color, color: getContrastColor(color) }}>
                                   {color.toUpperCase()}
                                 </span>
                               </div>
                               {copiedColor === color && (
                                 <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                  <LuCheck className="text-emerald-400 text-xl animate-pop-in" />
+                                  <FaCheck style={{ color: '#4ade80', fontSize: 14 }} />
                                 </div>
                               )}
                             </motion.div>

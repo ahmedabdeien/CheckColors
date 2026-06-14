@@ -1,19 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  FaCopy, 
-  FaMagic, 
-  FaSpinner, 
-  FaDownload, 
-  FaHistory, 
-  FaLock, 
-  FaUnlock, 
-  FaInfoCircle,
-  FaCheck,
-  FaRegLightbulb
-} from 'react-icons/fa';
-import { IoColorPalette } from 'react-icons/io5';
+import {
+  FaCopy, FaWandMagicSparkles, FaDownload, FaClockRotateLeft,
+  FaLock, FaLockOpen, FaCircleInfo, FaCheck, FaLightbulb, FaPalette
+} from 'react-icons/fa6';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import chroma from 'chroma-js';
+
+const LI_BLUE = '#0A66C2';
+const LI_BG = '#F3F2EF';
+const LI_BORDER = '#E0DFDC';
+const LI_TEXT = '#000000E6';
+const LI_MUTED = '#00000099';
 const GeneratePalette = () => {
   const [palette, setPalette] = useState([]);
   const [previousPalettes, setPreviousPalettes] = useState([]);
@@ -321,95 +318,57 @@ const hslToHex = (hslColor) => {
     return `${randomAdj} ${randomNoun} (${colorMode})`;
   };
 
-  // Notification component
-
-
-  // Enhanced notification system with better styling
   const Notification = ({ notification }) => (
     <AnimatePresence>
       {notification && (
-        <motion.div 
-          className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-xl flex items-center space-x-3 ${
-            notification.type === 'success' ? 'bg-emerald-100' : 'bg-rose-100'
-          }`}
+        <motion.div
+          className="fixed top-4 right-4 z-50 bg-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3"
+          style={{ border: `1px solid ${LI_BORDER}` }}
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 50 }}
           transition={{ duration: 0.3 }}
         >
-          <span className={`text-2xl ${notification.type === 'success' ? 'text-emerald-600' : 'text-rose-600'}`}>
+          <div className="p-1.5 rounded-full"
+            style={{ backgroundColor: notification.type === 'success' ? '#F0FFF6' : '#FFF0F0' }}>
             {notification.icon}
-          </span>
-          <div>
-            <p className="font-medium text-gray-800">{notification.message}</p>
-            {notification.hint && <p className="text-sm text-gray-600 mt-1">{notification.hint}</p>}
           </div>
+          <p className="text-sm font-medium" style={{ color: LI_TEXT }}>{notification.message}</p>
         </motion.div>
       )}
     </AnimatePresence>
   );
 
-  // Enhanced palette grid with better interactions
   const PaletteGrid = () => (
-    <motion.div 
+    <motion.div
       layout
-      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 w-full max-w-5xl mb-10"
-      variants={{
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-      }}
+      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 w-full max-w-5xl mb-8"
+      variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
       initial="hidden"
       animate="visible"
     >
       {palette.map((color, index) => (
-        <motion.div 
-          key={index}
-          className="relative group"
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.2 }}
-        >
-          {/* Color Swatch */}
-          <div 
-            className="h-48 rounded-2xl shadow-lg flex flex-col items-center justify-center relative overflow-hidden cursor-pointer"
-            style={{ backgroundColor: color }}
+        <motion.div key={index} className="relative group" whileHover={{ scale: 1.05 }} transition={{ duration: 0.2 }}>
+          <div
+            className="h-44 rounded-xl flex flex-col items-center justify-center relative overflow-hidden cursor-pointer"
+            style={{ backgroundColor: color, border: `1px solid ${LI_BORDER}` }}
             onClick={() => copyToClipboard(color)}
           >
-            {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
-            
-            {/* Color Information */}
-            <motion.div 
-              className="relative z-10 p-4 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <p className={`font-semibold text-lg ${getTextColor(color)}`}>
+            <div className="relative z-10 p-4 text-center">
+              <p className="font-semibold text-sm" style={{ color: getTextColor(color) }}>
                 {hslToHex(color).toUpperCase()}
               </p>
-              <p className={`text-xs mt-1 ${getTextColor(color)}`}>
-                {color}
-              </p>
-            </motion.div>
+            </div>
           </div>
-
-          {/* Enhanced Action Buttons */}
           <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button 
-              onClick={() => toggleLock(index)}
-              className="p-2 bg-white/90 rounded-full shadow hover:bg-white/100 transition-all"
-            >
-              {lockedColors[index] ? (
-                <FaLock className="text-red-500" />
-              ) : (
-                <FaUnlock className="text-green-500" />
-              )}
+            <button onClick={() => toggleLock(index)} className="p-2 bg-white/90 rounded-full shadow">
+              {lockedColors[index]
+                ? <FaLock style={{ color: '#CC1016', fontSize: 12 }} />
+                : <FaLockOpen style={{ color: '#057642', fontSize: 12 }} />}
             </button>
-            <button 
-              onClick={() => copyToClipboard(color)}
-              className="p-2 bg-white/90 rounded-full shadow hover:bg-white/100 transition-all"
-            >
-              <FaCopy className="text-gray-800" />
+            <button onClick={() => copyToClipboard(color)} className="p-2 bg-white/90 rounded-full shadow">
+              <FaCopy style={{ color: LI_TEXT, fontSize: 12 }} />
             </button>
           </div>
         </motion.div>
@@ -417,115 +376,80 @@ const hslToHex = (hslColor) => {
     </motion.div>
   );
 
-  // Improved mode selector with tooltip
   const ModeSelector = () => (
-    <div className="mb-10">
-      <div className="flex flex-wrap justify-center gap-3">
-        {['vibrant', 'pastel', 'monochrome', 'autumn', 'winter', 'spring', 'summer'].map((mode) => (
-          <div key={mode} className="relative group">
-            <button
-              onClick={() => setColorMode(mode)}
-              className={`px-5 py-3 rounded-full transition-all duration-300 
-                ${colorMode === mode 
-                  ? 'bg-gradient-to-r from-purple-600 to-blue-500 text-white shadow-lg' 
-                  : 'bg-white text-gray-700 hover:bg-gray-50 shadow'
-                }`}
-            >
-              {mode.charAt(0).toUpperCase() + mode.slice(1)}
-            </button>
-            <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <div className="bg-black/80 text-white text-xs rounded-lg px-3 py-2 whitespace-nowrap">
-                Generate {mode} color palettes
-              </div>
-            </div>
-          </div>
+    <div className="mb-8">
+      <div className="flex flex-wrap justify-center gap-2">
+        {['vibrant', 'pastel', 'monochrome', 'autumn', 'winter', 'spring', 'summer'].map(mode => (
+          <button
+            key={mode}
+            onClick={() => setColorMode(mode)}
+            className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+            style={{
+              backgroundColor: colorMode === mode ? LI_BLUE : '#fff',
+              color: colorMode === mode ? '#fff' : LI_MUTED,
+              border: `1px solid ${colorMode === mode ? LI_BLUE : LI_BORDER}`,
+            }}>
+            {mode.charAt(0).toUpperCase() + mode.slice(1)}
+          </button>
         ))}
       </div>
     </div>
   );
 
-  // Enhanced action buttons with better spacing and icons
   const ActionButtons = () => (
-    <div className="flex flex-wrap justify-center gap-4 mb-10">
-      <button
-        onClick={generateAIPalette}
-        disabled={isLoading}
-        className="flex items-center px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-70"
-      >
-        <FaMagic className="mr-3" />
-        Generate New
+    <div className="flex flex-wrap justify-center gap-3 mb-8">
+      <button onClick={generateAIPalette} disabled={isLoading}
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-sm font-semibold disabled:opacity-60"
+        style={{ backgroundColor: LI_BLUE }}>
+        <FaWandMagicSparkles className="text-xs" /> Generate New
       </button>
-      <button
-        onClick={downloadPalette}
-        className="flex items-center px-6 py-4 bg-green-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-      >
-        <FaDownload className="mr-3" />
-        Download
+      <button onClick={downloadPalette}
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-sm font-semibold"
+        style={{ backgroundColor: '#057642' }}>
+        <FaDownload className="text-xs" /> Download
       </button>
-      <button
-        onClick={() => savePalette(getPaletteSuggestion())}
-        className="flex items-center px-6 py-4 bg-yellow-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-      >
-        <FaCheck className="mr-3" />
-        Save Palette
+      <button onClick={() => savePalette(getPaletteSuggestion())}
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border"
+        style={{ borderColor: LI_BORDER, color: LI_TEXT, backgroundColor: '#fff' }}>
+        <FaCheck className="text-xs" style={{ color: '#057642' }} /> Save
       </button>
-      <button
-        onClick={() => setShowHistory(!showHistory)}
-        className="flex items-center px-6 py-4 bg-gray-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-      >
-        <FaHistory className="mr-3" />
-        History
+      <button onClick={() => setShowHistory(!showHistory)}
+        className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border"
+        style={{ borderColor: LI_BORDER, color: LI_TEXT, backgroundColor: '#fff' }}>
+        <FaClockRotateLeft className="text-xs" style={{ color: LI_MUTED }} /> History
       </button>
     </div>
   );
 
-  // Improved history drawer with better transitions
   const HistoryDrawer = () => (
     <AnimatePresence>
       {showHistory && (
-        <motion.div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <motion.div 
+        <motion.div
+          className="fixed inset-0 bg-black/50 z-50 flex justify-end"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div
             className="w-full md:w-2/3 lg:w-1/2 bg-white h-full overflow-y-auto p-6"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ duration: 0.3 }}
-          >
-            <button 
-              onClick={() => setShowHistory(false)}
-              className="text-gray-500 hover:text-gray-700 mb-4"
-            >
-              <FaArrowLeft className="text-2xl" />
-            </button>
-            <h2 className="text-3xl font-bold mb-6">Palette History</h2>
+            initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ duration: 0.3 }}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold" style={{ color: LI_TEXT }}>Palette History</h2>
+              <button onClick={() => setShowHistory(false)} className="p-1.5 rounded-full hover:bg-gray-50">
+                <span style={{ color: LI_MUTED, fontSize: 18 }}>✕</span>
+              </button>
+            </div>
             {previousPalettes.length > 0 ? (
               previousPalettes.map((oldPalette, index) => (
-                <motion.div 
-                  key={index} 
-                  className="grid grid-cols-5 gap-3 mb-6"
-                  whileHover={{ scale: 1.02 }}
-                >
+                <motion.div key={index} className="grid grid-cols-5 gap-2 mb-4 cursor-pointer rounded-lg overflow-hidden"
+                  whileHover={{ scale: 1.02 }} onClick={() => restorePalette(oldPalette)}>
                   {oldPalette.map((color, i) => (
-                    <div 
-                      key={i} 
-                      className="h-24 rounded-lg shadow cursor-pointer"
-                      style={{ backgroundColor: color }}
-                      onClick={() => restorePalette(oldPalette)}
-                    />
+                    <div key={i} className="h-16 rounded" style={{ backgroundColor: color }} />
                   ))}
                 </motion.div>
               ))
             ) : (
-              <div className="text-center text-gray-500 mt-10">
-                <FaRegLightbulb className="text-6xl mb-4" />
-                <p className="text-xl">No history yet</p>
-                <p className="text-sm">Generate some palettes to see history</p>
+              <div className="text-center mt-10">
+                <FaLightbulb style={{ fontSize: 40, color: LI_MUTED, margin: '0 auto 12px' }} />
+                <p className="text-sm font-medium" style={{ color: LI_TEXT }}>No history yet</p>
+                <p className="text-xs" style={{ color: LI_MUTED }}>Generate some palettes to see history</p>
               </div>
             )}
           </motion.div>
@@ -535,44 +459,42 @@ const hslToHex = (hslColor) => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    {/* Title Section */}
-    <div className="max-w-5xl mx-auto text-center mb-12">
-      <h1 className="text-5xl font-extrabold tracking-tight text-purple-600 mb-4 flex items-center justify-center">
-        <IoColorPalette className="mr-4 text-purple-600 text-6xl" />
-         GeneratorColor Palette 
-      </h1>
-      <p className="text-lg text-gray-600">
-        Create beautiful, accessible color schemes with AI-powered suggestions
-      </p>
-    </div>
-
-    {/* Main Content */}
-    <div className="max-w-5xl mx-auto space-y-10">
-      <ModeSelector />
-      <PaletteGrid />
-      <ActionButtons />
-      <HistoryDrawer />
-      <Notification notification={notification} />
-    </div>
-
-    {/* Enhanced Loading State */}
-    {isLoading && (
-      <div className="fixed inset-0 bg-white bg-opacity-90 z-50 flex flex-col items-center justify-center space-y-4">
-        <FaSpinner className="animate-spin text-purple-600 text-6xl" />
-        <p className="text-lg text-gray-700 font-medium">Generating your palette...</p>
-        <div className="w-64 h-4 bg-gray-200 rounded-full overflow-hidden">
-          <motion.div 
-            className="h-full bg-purple-600"
-            initial={{ width: 0 }}
-            animate={{ width: '100%' }}
-            transition={{ duration: 1.5, ease: 'linear' }}
-          />
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} className="py-10 px-4">
+      <div className="max-w-5xl mx-auto text-center mb-8">
+        <div className="flex items-center justify-center gap-3 mb-3">
+          <div className="w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: '#EEF3F8' }}>
+            <FaPalette style={{ color: LI_BLUE, fontSize: 18 }} />
+          </div>
+          <h1 className="text-3xl font-bold" style={{ color: LI_TEXT }}>Generate Color Palette</h1>
         </div>
+        <p className="text-sm" style={{ color: LI_MUTED }}>
+          Create beautiful, accessible color schemes with AI-powered suggestions
+        </p>
       </div>
-    )}
-  </div>
-);
+
+      <div className="max-w-5xl mx-auto">
+        <ModeSelector />
+        <div className="flex justify-center">
+          <PaletteGrid />
+        </div>
+        <ActionButtons />
+        <HistoryDrawer />
+        <Notification notification={notification} />
+      </div>
+
+      {isLoading && (
+        <div className="fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-4">
+          <div className="w-10 h-10 border-4 rounded-full animate-spin" style={{ borderColor: `${LI_BLUE}40`, borderTopColor: LI_BLUE }} />
+          <p className="text-sm font-medium" style={{ color: LI_TEXT }}>Generating your palette...</p>
+          <div className="w-64 h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#EEF3F8' }}>
+            <motion.div className="h-full rounded-full" style={{ backgroundColor: LI_BLUE }}
+              initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5, ease: 'linear' }} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default GeneratePalette;
