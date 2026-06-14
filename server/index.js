@@ -74,7 +74,7 @@ app.use((req, res) => res.status(404).json({ message: 'المسار غير مو�
 app.use((err, req, res, next) => {
   if (err.message === 'CORS blocked') return res.status(403).json({ message: 'غير مسموح' });
   console.error(err.stack);
-  res.status(500).json({ message: 'خطأ في الخادم' });
+  res.status(500).json({ message: 'خطأ في الخادم', debug: err.message, stack: err.stack?.split('\n').slice(0,3) });
 });
 
 const PORT = process.env.PORT || 5000;
