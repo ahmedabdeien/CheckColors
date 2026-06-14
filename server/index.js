@@ -20,8 +20,8 @@ app.use(cors({
 }));
 
 // Rate limiting
-app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'طلبات كثيرة، انتظر قليلاً' }));
-app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
+app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'طلبات كثيرة، انتظر قليلاً', validate: { xForwardedForHeader: false } }));
+app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 200, validate: { xForwardedForHeader: false } }));
 
 // Body parser (webhook route needs raw body, so it's handled in routes/subscriptions.js)
 app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
