@@ -1,5 +1,9 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const User = require('../models/User');
+
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) return null;
+  return require('stripe')(process.env.STRIPE_SECRET_KEY);
+};
 
 const PLANS = {
   pro: {
@@ -15,7 +19,10 @@ const PLANS = {
 // @POST /api/subscriptions/checkout
 const createCheckout = async (req, res) => {
   try {
-    const { plan, interval } = req.body; // plan: pro|enterprise, interval: monthly|yearly
+    const stripe = getStripe();
+    if (!stripe) return res.status(503).json({ message: 'بوابة الدفع غير متاحة حالياً' });
+
+    const { plan, interval } = req.body;
     if (!PLANS[plan]) return res.status(400).json({ message: 'خطة غير صالحة' });
 
     const priceId = PLANS[plan][interval];
@@ -47,8 +54,11 @@ const createCheckout = async (req, res) => {
   }
 };
 
-// @POST /api/subscriptions/webhook  (Stripe webhook)
+// @POST /api/subscriptions/webhook
 const handleWebhook = async (req, res) => {
+  const stripe = getStripe();
+  if (!stripe) return res.status(503).json({ message: 'غير متاح' });
+
   const sig = req.headers['stripe-signature'];
   let event;
   try {
@@ -93,6 +103,9 @@ const handleWebhook = async (req, res) => {
 // @POST /api/subscriptions/cancel
 const cancelSubscription = async (req, res) => {
   try {
+    const stripe = getStripe();
+    if (!stripe) return res.status(503).json({ message: 'بوابة الدفع غير متاحة حالياً' });
+
     const user = await User.findById(req.user._id);
     const subId = user.subscription.stripeSubscriptionId;
     if (!subId) return res.status(400).json({ message: 'لا يوجد اشتراك نشط' });
