@@ -4,7 +4,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const compression = require('compression');
 const connectDB = require('./config/db');
@@ -54,8 +53,20 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Security middleware
-app.use(mongoSanitize());  // prevent NoSQL injection
 app.use(hpp());            // prevent HTTP param pollution
+// Manual NoSQL injection prevention (express-mongo-sanitize incompatible with Express 5)
+app.use((req, _res, next) => {
+  const strip = (obj) => {
+    if (obj && typeof obj === 'object') {
+      for (const k of Object.keys(obj)) {
+        if (k.startsWith('$')) delete obj[k];
+        else strip(obj[k]);
+      }
+    }
+  };
+  if (req.body) strip(req.body);
+  next();
+});
 
 app.use(morgan('dev'));
 
@@ -74,7 +85,7 @@ app.use((req, res) => res.status(404).json({ message: 'المسار غير مو�
 app.use((err, req, res, next) => {
   if (err.message === 'CORS blocked') return res.status(403).json({ message: 'غير مسموح' });
   console.error(err.stack);
-  res.status(500).json({ message: 'خطأ في الخادم', debug: err.message, stack: err.stack?.split('\n').slice(0,3) });
+  res.status(500).json({ message: 'خطأ في الخادم' });
 });
 
 const PORT = process.env.PORT || 5000;
