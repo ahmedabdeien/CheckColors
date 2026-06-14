@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
-import CheckColorslogo from '../../assets/Check-Colors.png';
+import CheckColorslogo from '../../assets/cc-logo.svg';
 
 const schema = z.object({
   email: z.string().email('Please enter a valid email'),

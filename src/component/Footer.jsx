@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FaPalette, FaXTwitter, FaGithub, FaLinkedin } from 'react-icons/fa6';
-import CheckColorslogo from '../assets/Check-Colors.png';
+import CheckColorslogo from '../assets/cc-logo.svg';
 
 const LI_BLUE = '#0A66C2';
 const LI_BORDER = '#E0DFDC';

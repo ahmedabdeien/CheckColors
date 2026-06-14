@@ -7,7 +7,7 @@ import {
 } from 'react-icons/fa6';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import CheckColorslogo from '../../assets/Check-Colors.png';
+import CheckColorslogo from '../../assets/cc-logo.svg';
 
 const Navbar = () => {
   const [servicesOpen, setServicesOpen] = useState(false);

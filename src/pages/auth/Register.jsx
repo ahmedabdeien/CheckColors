@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { useAuth } from '../../context/AuthContext';
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGift, FaCheck } from 'react-icons/fa6';
 import toast from 'react-hot-toast';
-import CheckColorslogo from '../../assets/Check-Colors.png';
+import CheckColorslogo from '../../assets/cc-logo.svg';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
