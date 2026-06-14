@@ -74,6 +74,8 @@ app.use(morgan('dev'));
 app.use('/api/auth',          require('./routes/auth'));
 app.use('/api/admin',         require('./routes/admin'));
 app.use('/api/palettes',      require('./routes/palettes'));
+app.use('/api/colors',        require('./routes/colors'));
+app.use('/api/ai',            require('./routes/ai'));
 app.use('/api/subscriptions', require('./routes/subscriptions'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));

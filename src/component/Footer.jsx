@@ -9,12 +9,12 @@ const LI_TEXT = '#000000E6';
 
 const links = {
   Product: [
-    { to: '/Color-Palettes', label: 'Color Explorer' },
-    { to: '/ExplorerColor', label: 'Explorer Color' },
-    { to: '/Contrast-Checker', label: 'Contrast Checker' },
-    { to: '/image-to-palette', label: 'Image to Palette' },
-    { to: '/Generate-Palette', label: 'Generate Palette' },
-    { to: '/Ai-Colors', label: 'AI Colors' },
+    { to: '/explore',            label: 'Explore Palettes' },
+    { to: '/Contrast-Checker',   label: 'Contrast Checker' },
+    { to: '/gradient-generator', label: 'Gradient Generator' },
+    { to: '/tints-shades',       label: 'Tints & Shades' },
+    { to: '/image-to-palette',   label: 'Image to Palette' },
+    { to: '/Ai-Colors',          label: 'AI Colors' },
   ],
   Company: [
     { to: '/About', label: 'About' },

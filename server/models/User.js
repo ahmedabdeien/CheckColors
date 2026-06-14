@@ -32,6 +32,15 @@ const userSchema = new mongoose.Schema({
   aiGenerations: { type: Number, default: 0 },
   aiGenerationsReset: { type: Date, default: Date.now },
 
+  // Saved colors
+  savedColors: [{
+    hex:   { type: String, required: true },
+    name:  { type: String, default: '' },
+    note:  { type: String, default: '' },
+    tags:  [String],
+    savedAt: { type: Date, default: Date.now },
+  }],
+
   // Tokens
   resetPasswordToken: String,
   resetPasswordExpire: Date,

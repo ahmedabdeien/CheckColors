@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
 import toast from 'react-hot-toast';
+import chroma from 'chroma-js';
 import {
-  FaTableCells, FaStar, FaUsers, FaCopy, FaRightFromBracket,
+  FaTableCells, FaUsers, FaCopy, FaRightFromBracket,
   FaGear, FaBolt, FaShieldHalved, FaCrown, FaTrash, FaEye,
-  FaPlus, FaChartBar, FaPalette, FaHouse
+  FaPlus, FaPalette, FaHouse, FaCircleHalfStroke, FaFill, FaDroplet,
+  FaWandMagicSparkles, FaImage, FaShuffle, FaBookmark, FaMagnifyingGlass,
+  FaCheck, FaPen, FaXmark,
 } from 'react-icons/fa6';
 import CheckColorsLogo from '../../assets/cc-logo.svg';
 
@@ -22,51 +26,116 @@ const PLAN_STYLE = {
   enterprise: { label: 'Enterprise', bg: '#F5F0FF',  color: '#5B4FE8'    },
 };
 
+const getContrast = hex => {
+  try { return chroma(hex).luminance() > 0.35 ? '#000' : '#fff'; } catch { return '#000'; }
+};
+
 export default function Dashboard() {
   const { user, logout, isAdmin, isPro } = useAuth();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+
   const [palettes, setPalettes] = useState([]);
+  const [savedColors, setSavedColors] = useState([]);
   const [referrals, setReferrals] = useState(null);
   const [tab, setTab] = useState('palettes');
   const [loadingPalettes, setLoadingPalettes] = useState(true);
+  const [loadingColors, setLoadingColors] = useState(false);
+
+  // Saved color picker state
+  const [pickerHex, setPickerHex] = useState('#0A66C2');
+  const [pickerName, setPickerName] = useState('');
+  const [pickerNote, setPickerNote] = useState('');
+  const [colorSearch, setColorSearch] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState('');
 
   useEffect(() => {
     api.get('/palettes/my').then(r => setPalettes(r.data.palettes)).finally(() => setLoadingPalettes(false));
     api.get('/subscriptions/referrals').then(r => setReferrals(r.data)).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (tab === 'colors') {
+      setLoadingColors(true);
+      api.get('/colors/saved').then(r => setSavedColors(r.data.colors)).finally(() => setLoadingColors(false));
+    }
+  }, [tab]);
+
   const deletePalette = async (id) => {
-    if (!confirm('Delete this palette?')) return;
+    if (!confirm(t('dashboard.confirmDelete', 'Delete this palette?'))) return;
     await api.delete(`/palettes/${id}`);
     setPalettes(p => p.filter(x => x._id !== id));
-    toast.success('Palette deleted');
+    toast.success(t('dashboard.paletteDeleted', 'Palette deleted'));
+  };
+
+  const saveColor = async () => {
+    if (!pickerHex) return;
+    try {
+      const { data } = await api.post('/colors/saved', { hex: pickerHex, name: pickerName, note: pickerNote });
+      setSavedColors(prev => [data.color, ...prev]);
+      setPickerName(''); setPickerNote('');
+      toast.success(t('dashboard.colorSaved', 'Color saved!'));
+    } catch { toast.error(t('common.error')); }
+  };
+
+  const deleteColor = async (id) => {
+    await api.delete(`/colors/saved/${id}`);
+    setSavedColors(prev => prev.filter(c => c._id !== id));
+    toast.success(t('dashboard.colorRemoved', 'Color removed'));
+  };
+
+  const renameColor = async (id) => {
+    await api.patch(`/colors/saved/${id}`, { name: editName });
+    setSavedColors(prev => prev.map(c => c._id === id ? { ...c, name: editName } : c));
+    setEditingId(null);
+    toast.success(t('common.save'));
+  };
+
+  const copyHex = (hex) => {
+    navigator.clipboard.writeText(hex.toUpperCase());
+    toast.success(`Copied ${hex.toUpperCase()}`);
   };
 
   const copyReferralLink = () => {
     navigator.clipboard.writeText(referrals?.referralLink || '');
-    toast.success('Referral link copied!');
+    toast.success(t('dashboard.copy'));
   };
 
   const plan = user?.subscription?.plan || 'free';
   const planStyle = PLAN_STYLE[plan];
 
   const tabs = [
-    { id: 'palettes',  label: 'My Palettes',  icon: FaTableCells },
-    { id: 'referrals', label: 'Referrals',    icon: FaUsers       },
-    { id: 'settings',  label: 'Settings',     icon: FaGear        },
+    { id: 'palettes', label: t('dashboard.myPalettes'), icon: FaTableCells },
+    { id: 'colors',   label: t('dashboard.savedColors', 'Saved Colors'),  icon: FaBookmark },
+    { id: 'referrals',label: t('dashboard.referrals'),  icon: FaUsers },
+    { id: 'settings', label: t('dashboard.settings'),   icon: FaGear },
   ];
 
+  const quickTools = [
+    { icon: FaWandMagicSparkles, label: t('services.aiColors'),        to: '/Ai-Colors',          color: LI_BLUE },
+    { icon: FaCircleHalfStroke,  label: t('services.contrastChecker'), to: '/Contrast-Checker',   color: '#057642' },
+    { icon: FaFill,              label: t('services.gradientGenerator'),to: '/gradient-generator', color: '#7C3AED' },
+    { icon: FaDroplet,           label: t('services.tintsShades'),      to: '/tints-shades',       color: '#0891B2' },
+    { icon: FaImage,             label: t('services.imageToPalette'),   to: '/image-to-palette',   color: '#D97706' },
+    { icon: FaShuffle,           label: t('services.generatePalette'),  to: '/Generate-Palette',   color: '#DC2626' },
+  ];
+
+  const filteredColors = savedColors.filter(c =>
+    !colorSearch || c.hex.toLowerCase().includes(colorSearch.toLowerCase()) ||
+    c.name.toLowerCase().includes(colorSearch.toLowerCase())
+  );
+
   return (
-    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Top navbar */}
       <div className="bg-white sticky top-0 z-20 border-b" style={{ borderColor: LI_BORDER }}>
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             <img src={CheckColorsLogo} alt="CheckColors" className="w-8 h-8" />
             <span className="font-bold text-sm hidden sm:block" style={{ color: LI_BLUE }}>CheckColors</span>
           </Link>
 
-          {/* User info */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
               style={{ background: `linear-gradient(135deg, ${LI_BLUE}, #5BA4CF)` }}>
@@ -80,20 +149,19 @@ export default function Dashboard() {
 
           <div className="flex-1" />
 
-          {/* Actions */}
           <div className="flex items-center gap-2">
             <Link to="/"
               className="hidden sm:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-medium transition-colors"
               style={{ borderColor: LI_BORDER, color: LI_MUTED }}
               onMouseEnter={e => e.currentTarget.style.borderColor = LI_BLUE}
               onMouseLeave={e => e.currentTarget.style.borderColor = LI_BORDER}>
-              <FaHouse className="text-[10px]" /> Home
+              <FaHouse className="text-[10px]" /> {t('nav.home')}
             </Link>
             {isAdmin && (
               <Link to="/admin"
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-semibold"
                 style={{ borderColor: '#CC1016', color: '#CC1016' }}>
-                <FaShieldHalved /> Admin
+                <FaShieldHalved /> {t('nav.adminPanel')}
               </Link>
             )}
             <button onClick={logout}
@@ -101,7 +169,7 @@ export default function Dashboard() {
               style={{ borderColor: LI_BORDER, color: LI_MUTED }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = '#CC1016'; e.currentTarget.style.color = '#CC1016'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = LI_BORDER; e.currentTarget.style.color = LI_MUTED; }}>
-              <FaRightFromBracket /> Sign out
+              <FaRightFromBracket /> {t('nav.signOut')}
             </button>
           </div>
         </div>
@@ -111,7 +179,6 @@ export default function Dashboard() {
         {/* Left sidebar */}
         <aside className="hidden lg:block w-56 flex-shrink-0">
           <div className="bg-white rounded-xl overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
-            {/* Profile mini card */}
             <div className="p-4 border-b" style={{ borderColor: LI_BORDER }}>
               <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold mb-2"
                 style={{ background: `linear-gradient(135deg, ${LI_BLUE}, #5BA4CF)` }}>
@@ -137,19 +204,20 @@ export default function Dashboard() {
                 <Link to="/pricing"
                   className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm font-semibold"
                   style={{ color: '#915907', backgroundColor: '#FFF9F0' }}>
-                  <FaCrown /> Upgrade to Pro
+                  <FaCrown /> {t('dashboard.upgradeTitle')}
                 </Link>
               )}
             </div>
           </div>
 
-          {/* Stats card */}
+          {/* Stats */}
           <div className="bg-white rounded-xl mt-3 p-4" style={{ border: `1px solid ${LI_BORDER}` }}>
-            <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>QUICK STATS</p>
+            <p className="text-xs font-semibold mb-3 uppercase tracking-wide" style={{ color: LI_MUTED }}>{t('dashboard.quickStats')}</p>
             {[
-              { icon: FaTableCells, label: 'Palettes', value: palettes.length, max: plan === 'free' ? '/10' : '/∞' },
-              { icon: FaBolt, label: 'AI Generations', value: user?.aiGenerations || 0, max: '' },
-              { icon: FaUsers, label: 'Referrals', value: user?.referralCount || 0, max: '' },
+              { icon: FaTableCells, label: t('dashboard.palettes'), value: palettes.length, max: plan === 'free' ? '/10' : '/∞' },
+              { icon: FaBookmark,   label: t('dashboard.savedColors', 'Saved Colors'), value: savedColors.length || '—', max: '' },
+              { icon: FaBolt,       label: t('dashboard.aiGenerations'), value: user?.aiGenerations || 0, max: '' },
+              { icon: FaUsers,      label: t('dashboard.referralsCount'), value: user?.referralCount || 0, max: '' },
             ].map(({ icon: Icon, label, value, max }) => (
               <div key={label} className="flex items-center justify-between py-2 border-b last:border-0"
                 style={{ borderColor: LI_BORDER }}>
@@ -165,15 +233,58 @@ export default function Dashboard() {
         {/* Main content */}
         <main className="flex-1 min-w-0">
           {/* Mobile tabs */}
-          <div className="lg:hidden flex gap-1 bg-white rounded-xl p-1 mb-4" style={{ border: `1px solid ${LI_BORDER}` }}>
+          <div className="lg:hidden flex gap-1 bg-white rounded-xl p-1 mb-4 overflow-x-auto" style={{ border: `1px solid ${LI_BORDER}` }}>
             {tabs.map(({ id, label, icon: Icon }) => (
               <button key={id} onClick={() => setTab(id)}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-colors"
+                className="flex-shrink-0 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-colors"
                 style={{ backgroundColor: tab === id ? LI_BLUE : 'transparent', color: tab === id ? '#fff' : LI_MUTED }}>
                 <Icon /> {label}
               </button>
             ))}
           </div>
+
+          {/* Quick Tools (palettes + colors tabs) */}
+          {(tab === 'palettes' || tab === 'colors') && (
+            <div className="bg-white rounded-xl p-4 mb-4" style={{ border: `1px solid ${LI_BORDER}` }}>
+              <p className="text-xs font-semibold mb-3 uppercase tracking-wide" style={{ color: LI_MUTED }}>{t('dashboard.quickAccess', 'Quick Access')}</p>
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                {quickTools.map(({ icon: Icon, label, to, color }) => (
+                  <Link key={to} to={to}
+                    className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-colors hover:opacity-80"
+                    style={{ backgroundColor: '#F3F2EF' }}>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: color + '18' }}>
+                      <Icon className="text-sm" style={{ color }} />
+                    </div>
+                    <span className="text-[10px] font-medium text-center leading-tight" style={{ color: LI_MUTED }}>{label}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Usage bar (free) */}
+          {tab === 'palettes' && plan === 'free' && (
+            <div className="bg-white rounded-xl p-4 mb-4" style={{ border: `1px solid ${LI_BORDER}` }}>
+              <p className="text-xs font-semibold mb-3 uppercase tracking-wide" style={{ color: LI_MUTED }}>{t('dashboard.usage', 'Usage')}</p>
+              <div className="space-y-3">
+                {[
+                  { label: t('dashboard.palettes'), value: palettes.length, max: 10, color: LI_BLUE },
+                  { label: t('dashboard.aiGenerations'), value: user?.aiGenerations || 0, max: 10, color: '#7C3AED' },
+                ].map(({ label, value, max, color }) => (
+                  <div key={label}>
+                    <div className="flex justify-between text-xs mb-1">
+                      <span style={{ color: LI_MUTED }}>{label}</span>
+                      <span style={{ color: LI_TEXT }} className="font-semibold">{value} / {max}</span>
+                    </div>
+                    <div className="h-1.5 rounded-full" style={{ backgroundColor: '#E0DFDC' }}>
+                      <div className="h-1.5 rounded-full transition-all"
+                        style={{ width: `${Math.min((value / max) * 100, 100)}%`, backgroundColor: value >= max ? '#CC1016' : color }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Pro upgrade banner */}
           {plan === 'free' && (
@@ -181,28 +292,27 @@ export default function Dashboard() {
               className="flex items-center justify-between bg-white rounded-xl p-4 mb-4 transition-shadow hover:shadow-sm"
               style={{ border: `1px solid ${LI_BORDER}` }}>
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: '#FFF9F0' }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: '#FFF9F0' }}>
                   <FaCrown style={{ color: '#915907' }} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold" style={{ color: LI_TEXT }}>Upgrade to Pro</p>
-                  <p className="text-xs" style={{ color: LI_MUTED }}>Unlimited palettes · 100 AI/month · Advanced export</p>
+                  <p className="text-sm font-semibold" style={{ color: LI_TEXT }}>{t('dashboard.upgradeTitle')}</p>
+                  <p className="text-xs" style={{ color: LI_MUTED }}>{t('dashboard.upgradeDesc')}</p>
                 </div>
               </div>
               <span className="text-sm font-semibold" style={{ color: LI_BLUE }}>$9.99/mo →</span>
             </Link>
           )}
 
-          {/* PALETTES TAB */}
+          {/* ── PALETTES TAB ── */}
           {tab === 'palettes' && (
             <div className="bg-white rounded-xl" style={{ border: `1px solid ${LI_BORDER}` }}>
               <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: LI_BORDER }}>
-                <h2 className="font-semibold text-base" style={{ color: LI_TEXT }}>My Palettes ({palettes.length})</h2>
+                <h2 className="font-semibold text-base" style={{ color: LI_TEXT }}>{t('dashboard.myPalettes')} ({palettes.length})</h2>
                 <Link to="/Generate-Palette"
                   className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-full text-white font-semibold"
                   style={{ backgroundColor: LI_BLUE }}>
-                  <FaPlus /> New Palette
+                  <FaPlus /> {t('dashboard.newPalette')}
                 </Link>
               </div>
               <div className="p-5">
@@ -215,9 +325,9 @@ export default function Dashboard() {
                 ) : palettes.length === 0 ? (
                   <div className="text-center py-16">
                     <FaPalette className="mx-auto text-4xl mb-3" style={{ color: '#B0B0B0' }} />
-                    <p className="text-sm font-medium" style={{ color: LI_MUTED }}>No palettes yet</p>
+                    <p className="text-sm font-medium" style={{ color: LI_MUTED }}>{t('dashboard.noPalettes')}</p>
                     <Link to="/Generate-Palette" className="text-xs mt-2 inline-block font-semibold" style={{ color: LI_BLUE }}>
-                      Create your first palette
+                      {t('dashboard.createFirst')}
                     </Link>
                   </div>
                 ) : (
@@ -231,12 +341,12 @@ export default function Dashboard() {
                         <div className="p-3 flex items-center justify-between">
                           <div>
                             <p className="text-xs font-semibold truncate" style={{ color: LI_TEXT }}>{p.name}</p>
-                            <p className="text-[10px]" style={{ color: LI_MUTED }}>{p.colors.length} colors</p>
+                            <p className="text-[10px]" style={{ color: LI_MUTED }}>{p.colors.length} {t('dashboard.colorsCount', 'colors')}</p>
                           </div>
                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-1.5 rounded" style={{ color: LI_BLUE }}><FaEye className="text-xs" /></button>
+                            <button className="p-1.5 rounded" style={{ color: LI_BLUE }} title={t('common.edit')}><FaEye className="text-xs" /></button>
                             <button onClick={() => deletePalette(p._id)} className="p-1.5 rounded"
-                              style={{ color: '#CC1016' }}><FaTrash className="text-xs" /></button>
+                              style={{ color: '#CC1016' }} title={t('common.delete')}><FaTrash className="text-xs" /></button>
                           </div>
                         </div>
                       </div>
@@ -247,7 +357,158 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* REFERRALS TAB */}
+          {/* ── SAVED COLORS TAB ── */}
+          {tab === 'colors' && (
+            <div className="space-y-4">
+              {/* Color picker to save */}
+              <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <h3 className="font-semibold text-sm mb-4 flex items-center gap-2" style={{ color: LI_TEXT }}>
+                  <FaBookmark style={{ color: LI_BLUE }} /> {t('dashboard.saveAColor', 'Save a Color')}
+                </h3>
+                <div className="flex flex-wrap gap-3 items-end">
+                  <div>
+                    <label className="block text-xs mb-1" style={{ color: LI_MUTED }}>{t('dashboard.colorHex', 'Color')}</label>
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={pickerHex} onChange={e => setPickerHex(e.target.value)}
+                        className="w-12 h-10 rounded-lg cursor-pointer border-0 p-0.5"
+                        style={{ border: `1px solid ${LI_BORDER}` }} />
+                      <input type="text" value={pickerHex} onChange={e => setPickerHex(e.target.value)}
+                        className="w-28 text-sm px-3 py-2 rounded-lg font-mono outline-none"
+                        style={{ border: `1px solid ${LI_BORDER}`, color: LI_TEXT }}
+                        onFocus={e => e.target.style.borderColor = LI_BLUE}
+                        onBlur={e => e.target.style.borderColor = LI_BORDER} />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-32">
+                    <label className="block text-xs mb-1" style={{ color: LI_MUTED }}>{t('dashboard.colorName', 'Name (optional)')}</label>
+                    <input type="text" value={pickerName} onChange={e => setPickerName(e.target.value)}
+                      placeholder={t('dashboard.colorNamePlaceholder', 'e.g. Brand Blue')}
+                      className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                      style={{ border: `1px solid ${LI_BORDER}`, color: LI_TEXT }}
+                      onFocus={e => e.target.style.borderColor = LI_BLUE}
+                      onBlur={e => e.target.style.borderColor = LI_BORDER} />
+                  </div>
+                  <div className="flex-1 min-w-32">
+                    <label className="block text-xs mb-1" style={{ color: LI_MUTED }}>{t('dashboard.colorNote', 'Note')}</label>
+                    <input type="text" value={pickerNote} onChange={e => setPickerNote(e.target.value)}
+                      placeholder={t('dashboard.colorNotePlaceholder', 'Usage, project...')}
+                      className="w-full text-sm px-3 py-2 rounded-lg outline-none"
+                      style={{ border: `1px solid ${LI_BORDER}`, color: LI_TEXT }}
+                      onFocus={e => e.target.style.borderColor = LI_BLUE}
+                      onBlur={e => e.target.style.borderColor = LI_BORDER} />
+                  </div>
+                  <button onClick={saveColor}
+                    className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white"
+                    style={{ backgroundColor: LI_BLUE }}>
+                    <FaPlus size={12} /> {t('common.save')}
+                  </button>
+                </div>
+                {/* Preview swatch */}
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="w-16 h-10 rounded-lg flex items-center justify-center text-xs font-bold"
+                    style={{ backgroundColor: pickerHex, color: getContrast(pickerHex) }}>
+                    {pickerHex.toUpperCase()}
+                  </div>
+                  <div className="text-xs" style={{ color: LI_MUTED }}>
+                    {(() => { try { const [r, g, b] = chroma(pickerHex).rgb(); return `rgb(${r}, ${g}, ${b})`; } catch { return ''; } })()}
+                    {' · '}
+                    {(() => { try { const [h, s, l] = chroma(pickerHex).hsl(); return `hsl(${Math.round(h||0)}, ${Math.round(s*100)}%, ${Math.round(l*100)}%)`; } catch { return ''; } })()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Saved colors grid */}
+              <div className="bg-white rounded-xl" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: LI_BORDER }}>
+                  <h3 className="font-semibold text-sm" style={{ color: LI_TEXT }}>
+                    {t('dashboard.mySavedColors', 'My Saved Colors')} ({savedColors.length})
+                  </h3>
+                  <div className="relative">
+                    <FaMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px]" style={{ color: LI_MUTED }} />
+                    <input value={colorSearch} onChange={e => setColorSearch(e.target.value)}
+                      placeholder={t('common.search')}
+                      className="pl-7 pr-3 py-1.5 text-xs rounded-lg outline-none w-36"
+                      style={{ border: `1px solid ${LI_BORDER}`, color: LI_TEXT }}
+                      onFocus={e => e.target.style.borderColor = LI_BLUE}
+                      onBlur={e => e.target.style.borderColor = LI_BORDER} />
+                  </div>
+                </div>
+                <div className="p-5">
+                  {loadingColors ? (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[1,2,3,4,5,6,7,8].map(i => (
+                        <div key={i} className="rounded-xl animate-pulse h-24" style={{ backgroundColor: '#F3F2EF' }} />
+                      ))}
+                    </div>
+                  ) : filteredColors.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FaBookmark className="mx-auto text-3xl mb-3" style={{ color: '#B0B0B0' }} />
+                      <p className="text-sm" style={{ color: LI_MUTED }}>
+                        {savedColors.length === 0 ? t('dashboard.noSavedColors', 'No saved colors yet. Pick a color above and save it!') : t('common.noResults')}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {filteredColors.map(c => (
+                        <div key={c._id} className="group rounded-xl overflow-hidden transition-shadow hover:shadow-md"
+                          style={{ border: `1px solid ${LI_BORDER}` }}>
+                          {/* Swatch */}
+                          <div className="relative h-20 flex items-center justify-center cursor-pointer"
+                            style={{ backgroundColor: c.hex }}
+                            onClick={() => copyHex(c.hex)}>
+                            <span className="text-xs font-bold font-mono opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{ color: getContrast(c.hex) }}>
+                              {c.hex.toUpperCase()}
+                            </span>
+                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={e => { e.stopPropagation(); copyHex(c.hex); }}
+                                className="w-6 h-6 rounded flex items-center justify-center"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
+                                <FaCopy size={9} style={{ color: getContrast(c.hex) }} />
+                              </button>
+                              <button onClick={e => { e.stopPropagation(); deleteColor(c._id); }}
+                                className="w-6 h-6 rounded flex items-center justify-center"
+                                style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}>
+                                <FaTrash size={9} style={{ color: getContrast(c.hex) }} />
+                              </button>
+                            </div>
+                          </div>
+                          {/* Info */}
+                          <div className="px-3 py-2">
+                            {editingId === c._id ? (
+                              <div className="flex items-center gap-1">
+                                <input autoFocus value={editName} onChange={e => setEditName(e.target.value)}
+                                  onKeyDown={e => { if (e.key === 'Enter') renameColor(c._id); if (e.key === 'Escape') setEditingId(null); }}
+                                  className="flex-1 text-xs px-1.5 py-1 rounded outline-none"
+                                  style={{ border: `1px solid ${LI_BLUE}`, color: LI_TEXT }} />
+                                <button onClick={() => renameColor(c._id)} style={{ color: '#057642' }}><FaCheck size={10} /></button>
+                                <button onClick={() => setEditingId(null)} style={{ color: '#CC1016' }}><FaXmark size={10} /></button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs font-semibold truncate" style={{ color: LI_TEXT }}>
+                                  {c.name || c.hex.toUpperCase()}
+                                </p>
+                                <button onClick={() => { setEditingId(c._id); setEditName(c.name || c.hex); }}
+                                  className="opacity-0 group-hover:opacity-100"
+                                  style={{ color: LI_MUTED }}>
+                                  <FaPen size={9} />
+                                </button>
+                              </div>
+                            )}
+                            {c.note && <p className="text-[10px] truncate mt-0.5" style={{ color: LI_MUTED }}>{c.note}</p>}
+                            <p className="text-[10px] font-mono mt-0.5" style={{ color: LI_MUTED }}>{c.hex.toUpperCase()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── REFERRALS TAB ── */}
           {tab === 'referrals' && referrals && (
             <div className="space-y-4">
               <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
@@ -256,8 +517,8 @@ export default function Dashboard() {
                     <FaUsers style={{ color: LI_BLUE }} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-sm" style={{ color: LI_TEXT }}>Your referral link</h3>
-                    <p className="text-xs" style={{ color: LI_MUTED }}>Earn 7 days Pro free for each friend you refer</p>
+                    <h3 className="font-semibold text-sm" style={{ color: LI_TEXT }}>{t('dashboard.yourReferralLink')}</h3>
+                    <p className="text-xs" style={{ color: LI_MUTED }}>{t('dashboard.referralDesc')}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -268,14 +529,14 @@ export default function Dashboard() {
                   <button onClick={copyReferralLink}
                     className="flex items-center gap-1.5 text-xs px-4 py-2.5 rounded-full font-semibold text-white"
                     style={{ backgroundColor: LI_BLUE }}>
-                    <FaCopy /> Copy
+                    <FaCopy /> {t('dashboard.copy')}
                   </button>
                 </div>
                 <div className="grid grid-cols-3 gap-3 mt-4">
                   {[
-                    { label: 'Total Referrals', value: referrals.referralCount },
-                    { label: 'Reward Days', value: referrals.referralReward },
-                    { label: 'Your Code', value: user?.referralCode },
+                    { label: t('dashboard.totalReferrals'), value: referrals.referralCount },
+                    { label: t('dashboard.rewardDays'), value: referrals.referralReward },
+                    { label: t('dashboard.yourCode'), value: user?.referralCode },
                   ].map(({ label, value }) => (
                     <div key={label} className="rounded-lg p-3 text-center" style={{ backgroundColor: '#F3F2EF' }}>
                       <p className="text-lg font-bold" style={{ color: LI_TEXT }}>{value}</p>
@@ -289,7 +550,7 @@ export default function Dashboard() {
                 <div className="bg-white rounded-xl" style={{ border: `1px solid ${LI_BORDER}` }}>
                   <div className="px-5 py-4 border-b" style={{ borderColor: LI_BORDER }}>
                     <h3 className="font-semibold text-sm" style={{ color: LI_TEXT }}>
-                      Referred Users ({referrals.referrals.length})
+                      {t('dashboard.referredUsers', 'Referred Users')} ({referrals.referrals.length})
                     </h3>
                   </div>
                   <div className="divide-y" style={{ borderColor: LI_BORDER }}>
@@ -317,19 +578,19 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* SETTINGS TAB */}
+          {/* ── SETTINGS TAB ── */}
           {tab === 'settings' && (
             <div className="bg-white rounded-xl" style={{ border: `1px solid ${LI_BORDER}` }}>
               <div className="px-5 py-4 border-b flex items-center gap-2" style={{ borderColor: LI_BORDER }}>
                 <FaGear style={{ color: LI_BLUE }} />
-                <h2 className="font-semibold text-base" style={{ color: LI_TEXT }}>Account Settings</h2>
+                <h2 className="font-semibold text-base" style={{ color: LI_TEXT }}>{t('dashboard.settings')}</h2>
               </div>
               <div className="p-5 max-w-sm space-y-0 divide-y" style={{ borderColor: LI_BORDER }}>
                 {[
-                  { label: 'Full name',     value: user?.name },
-                  { label: 'Email',         value: user?.email },
-                  { label: 'Member since',  value: new Date(user?.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) },
-                  { label: 'Plan',          value: planStyle.label },
+                  { label: t('dashboard.fullName'), value: user?.name },
+                  { label: t('dashboard.email'),    value: user?.email },
+                  { label: t('dashboard.memberSince'), value: new Date(user?.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'long' }) },
+                  { label: t('dashboard.plan'),     value: planStyle.label },
                 ].map(({ label, value }) => (
                   <div key={label} className="flex items-center justify-between py-3">
                     <span className="text-sm" style={{ color: LI_MUTED }}>{label}</span>
@@ -342,12 +603,12 @@ export default function Dashboard() {
                   <Link to="/pricing"
                     className="block w-full text-center py-2.5 rounded-full font-semibold text-sm"
                     style={{ backgroundColor: LI_BLUE, color: '#fff' }}>
-                    Upgrade to Pro — $9.99/mo
+                    {t('dashboard.upgradeNow')}
                   </Link>
                 ) : (
                   <button className="w-full text-sm py-2 rounded-full border font-medium"
                     style={{ borderColor: '#CC1016', color: '#CC1016' }}>
-                    Cancel subscription
+                    {t('dashboard.cancelSub')}
                   </button>
                 )}
               </div>

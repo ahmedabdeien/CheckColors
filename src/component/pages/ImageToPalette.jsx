@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import {
   FaUpload, FaCopy, FaCheck, FaPalette, FaImage,
-  FaDownload, FaCircleInfo, FaXmark, FaArrowRotateLeft, FaClipboard
+  FaDownload, FaCircleInfo, FaXmark, FaArrowRotateLeft, FaCode
 } from 'react-icons/fa6';
 import { useDropzone } from 'react-dropzone';
 import { Vibrant } from 'node-vibrant/browser';
 import { motion, AnimatePresence } from 'framer-motion';
+import chroma from 'chroma-js';
+import toast from 'react-hot-toast';
 
 const LI_BLUE = '#0A66C2';
 const LI_BG = '#F3F2EF';
@@ -13,352 +15,326 @@ const LI_BORDER = '#E0DFDC';
 const LI_TEXT = '#000000E6';
 const LI_MUTED = '#00000099';
 
-const ImageToPalette = () => {
+const getContrast = (hex) => {
+  try { return chroma(hex).luminance() > 0.35 ? '#000' : '#fff'; } catch { return '#fff'; }
+};
+
+const toRgb = (hex) => {
+  try { const [r, g, b] = chroma(hex).rgb(); return `rgb(${r}, ${g}, ${b})`; } catch { return ''; }
+};
+
+export default function ImageToPalette() {
   const [imageUrl, setImageUrl] = useState(null);
   const [colors, setColors] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [copiedColor, setCopiedColor] = useState(null);
+  const [copiedIdx, setCopiedIdx] = useState(null);
   const [paletteName, setPaletteName] = useState('');
-  const [showTips, setShowTips] = useState(true);
-  const [notification, setNotification] = useState(null);
+  const [showExport, setShowExport] = useState(false);
+  const [exportTab, setExportTab] = useState('css');
+
+  // Extract colors whenever imageUrl changes
   useEffect(() => {
-    const extractColors = async () => {
-      if (!imageUrl) return;
-      try {
-        const palette = await Vibrant.from(imageUrl).getPalette();
-        // ... existing color extraction
-      } catch (err) {
-        setError('Error processing image. Please try another one.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    extractColors();
+    if (!imageUrl) return;
+    setIsLoading(true);
+    setColors([]);
+    setError(null);
+
+    Vibrant.from(imageUrl).getPalette()
+      .then(palette => {
+        const extracted = [
+          palette.Vibrant?.hex,
+          palette.LightVibrant?.hex,
+          palette.DarkVibrant?.hex,
+          palette.Muted?.hex,
+          palette.LightMuted?.hex,
+          palette.DarkMuted?.hex,
+        ].filter(Boolean);
+        setColors(extracted);
+      })
+      .catch(() => setError('Could not extract colors. Try a different image.'))
+      .finally(() => setIsLoading(false));
   }, [imageUrl]);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      'image/*': ['.jpeg', '.jpg', '.png', '.webp']
-    },
+    accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] },
     maxFiles: 1,
-    onDrop: files => {
-      handleImageUpload(files[0]);
-    }
+    onDrop: ([file]) => {
+      if (!file) return;
+      const name = file.name.split('.')[0].replace(/[-_]/g, ' ');
+      setPaletteName(name.charAt(0).toUpperCase() + name.slice(1) + ' Palette');
+      const reader = new FileReader();
+      reader.onload = e => setImageUrl(e.target.result);
+      reader.readAsDataURL(file);
+    },
   });
 
-  const handleImageUpload = file => {
-    setIsLoading(true);
-    setError(null);
-    setColors([]);
-    
-    if (!file.type.startsWith('image/')) {
-      setError('Please upload a valid image file');
-      setIsLoading(false);
-      return;
-    }
-
-    // Generate a palette name based on the file name
-    const fileName = file.name.split('.')[0];
-    setPaletteName(fileName.charAt(0).toUpperCase() + fileName.slice(1).replace(/[-_]/g, ' ') + ' Palette');
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImageUrl(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const showNotification = (message, type = 'info') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
-  };
-
-  const resetAll = () => {
-    setImageUrl(null);
-    setColors([]);
-    setPaletteName('');
-    setError(null);
-  };
-
-  useEffect(() => {
-    const extractColors = async () => {
-      if (!imageUrl) return;
-
-      try {
-        const palette = await Vibrant.from(imageUrl).getPalette();
-        const extractedColors = [
-          palette.Vibrant?.hex,
-          palette.Muted?.hex,
-          palette.DarkVibrant?.hex,
-          palette.LightVibrant?.hex,
-          palette.DarkMuted?.hex,
-          palette.LightMuted?.hex
-        ].filter(color => color);
-        
-        setColors(extractedColors);
-      } catch (err) {
-        setError('Error processing image. Please try another one.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    extractColors();
-  }, [imageUrl]);
-
-  const copyToClipboard = (color) => {
+  const copyColor = (color, idx) => {
     navigator.clipboard.writeText(color);
-    setCopiedColor(color);
-    showNotification(`${color} copied to clipboard!`, 'success');
-    setTimeout(() => setCopiedColor(null), 2000);
+    setCopiedIdx(idx);
+    toast.success(`Copied ${color}`);
+    setTimeout(() => setCopiedIdx(null), 1500);
   };
 
-  const copyPalette = () => {
-    navigator.clipboard.writeText(colors.join(', '));
-    showNotification('All colors copied to clipboard!', 'success');
-  };
-
-  const savePalette = () => {
-    // This would typically save to a database or local storage
-    showNotification('Palette saved!', 'success');
-  };
-
-  const downloadPalette = () => {
-    // Create a simple html file with the colors
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${paletteName}</title>
-        <style>
-          body { font-family: sans-serif; margin: 0; padding: 20px; }
-          h1 { margin-bottom: 20px; }
-          .palette { display: flex; height: 100px; margin-bottom: 20px; }
-          .color { flex: 1; display: flex; align-items: flex-end; justify-content: center; padding: 10px; }
-          .hex { background: rgba(0,0,0,0.5); color: white; padding: 5px 10px; border-radius: 4px; }
-        </style>
-      </head>
-      <body>
-        <h1>${paletteName}</h1>
-        <div class="palette">
-          ${colors.map(color => `
-            <div class="color" style="background-color: ${color}">
-              <span class="hex">${color}</span>
-            </div>
-          `).join('')}
-        </div>
-      </body>
-      </html>
-    `;
-    
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
+  const downloadPNG = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = colors.length * 200; canvas.height = 200;
+    const ctx = canvas.getContext('2d');
+    colors.forEach((color, i) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(i * 200, 0, 200, 200);
+      ctx.fillStyle = getContrast(color);
+      ctx.font = 'bold 14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(color.toUpperCase(), i * 200 + 100, 110);
+    });
     const a = document.createElement('a');
-    a.href = url;
-    a.download = `${paletteName.replace(/\s+/g, '-').toLowerCase()}.html`;
+    a.download = `${paletteName || 'palette'}.png`;
+    a.href = canvas.toDataURL();
     a.click();
-    URL.revokeObjectURL(url);
-    
-    showNotification('Palette downloaded!', 'success');
+    toast.success('PNG downloaded');
   };
 
-  // Calculate whether to use black or white text on a color
-  const getContrastColor = (hexColor) => {
-    const hex = hexColor.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.5 ? '#000000' : '#ffffff';
-  };
+  const cssVars = `:root {\n${colors.map((c, i) => `  --color-${i + 1}: ${c};`).join('\n')}\n}`;
+  const tailwindCode = `colors: {\n${colors.map((c, i) => `  'img-${i + 1}': '${c}',`).join('\n')}\n}`;
+  const scssCode = colors.map((c, i) => `$color-${i + 1}: ${c};`).join('\n');
+
+  const EXPORT_TABS = [
+    { id: 'css', label: 'CSS Vars', code: cssVars },
+    { id: 'tailwind', label: 'Tailwind', code: tailwindCode },
+    { id: 'scss', label: 'SCSS', code: scssCode },
+  ];
 
   return (
     <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} className="p-4 md:p-8">
-      {/* Notification */}
-      <AnimatePresence>
-        {notification && (
-          <motion.div
-            className="fixed top-4 right-4 z-50 bg-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3"
-            style={{ border: `1px solid ${LI_BORDER}` }}
-            initial={{ opacity: 0, x: 100 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 100 }}
-          >
-            <div className="p-1.5 rounded-full"
-              style={{ backgroundColor: notification.type === 'success' ? '#F0FFF6' : '#FFF0F0' }}>
-              {notification.type === 'success' && <FaCheck style={{ color: '#057642', fontSize: 12 }} />}
-              {notification.type === 'error' && <FaXmark style={{ color: '#CC1016', fontSize: 12 }} />}
-              {notification.type === 'info' && <FaCircleInfo style={{ color: LI_BLUE, fontSize: 12 }} />}
-            </div>
-            <span className="text-sm font-medium" style={{ color: LI_TEXT }}>{notification.message}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="max-w-5xl mx-auto">
 
-      <div className="max-w-6xl mx-auto">
-        <header className="mb-8">
+        {/* Header */}
+        <header className="mb-6">
           <h1 className="text-2xl font-bold mb-1 flex items-center gap-3" style={{ color: LI_TEXT }}>
             <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: '#EEF3F8' }}>
-              <FaPalette style={{ color: LI_BLUE, fontSize: 16 }} />
+              <FaImage style={{ color: LI_BLUE, fontSize: 16 }} />
             </div>
-            Image to Palette Generator
+            Image to Palette
           </h1>
-          <p className="text-sm" style={{ color: LI_MUTED }}>Extract beautiful color palettes from your favorite images</p>
+          <p className="text-sm" style={{ color: LI_MUTED }}>Extract the dominant color palette from any image</p>
         </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div className="md:col-span-1">
-            {/* Upload */}
+        <div className="grid md:grid-cols-3 gap-5">
+          {/* Left: Upload + Tips */}
+          <div className="md:col-span-1 space-y-4">
             <div className="bg-white rounded-xl overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
               <div className="px-4 py-3 border-b flex items-center gap-2" style={{ borderColor: LI_BORDER }}>
-                <FaUpload style={{ color: LI_BLUE, fontSize: 14 }} />
-                <h2 className="font-semibold text-sm" style={{ color: LI_TEXT }}>Upload Image</h2>
+                <FaUpload style={{ color: LI_BLUE, fontSize: 13 }} />
+                <span className="font-semibold text-sm" style={{ color: LI_TEXT }}>Upload Image</span>
               </div>
-              <div
-                {...getRootProps()}
-                className="border-2 border-dashed m-4 rounded-xl p-8 text-center cursor-pointer transition-all"
-                style={{ borderColor: isDragActive ? LI_BLUE : LI_BORDER, backgroundColor: isDragActive ? '#EEF3F8' : '#fff' }}
-              >
+              <div {...getRootProps()}
+                className="m-4 border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all"
+                style={{ borderColor: isDragActive ? LI_BLUE : LI_BORDER, backgroundColor: isDragActive ? '#EEF3F8' : 'transparent' }}>
                 <input {...getInputProps()} />
                 <div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3"
                   style={{ backgroundColor: '#EEF3F8' }}>
                   <FaUpload style={{ color: LI_BLUE, fontSize: 18 }} />
                 </div>
-                {isDragActive ? (
-                  <p className="text-sm font-medium" style={{ color: LI_BLUE }}>Drop to generate palette!</p>
-                ) : (
-                  <>
+                {isDragActive
+                  ? <p className="text-sm font-medium" style={{ color: LI_BLUE }}>Drop to extract palette!</p>
+                  : <>
                     <p className="text-sm font-medium" style={{ color: LI_TEXT }}>
                       Drag & drop or <span style={{ color: LI_BLUE }}>browse</span>
                     </p>
-                    <p className="text-xs mt-1" style={{ color: LI_MUTED }}>Supports: JPEG, PNG, WEBP</p>
-                  </>
-                )}
+                    <p className="text-xs mt-1" style={{ color: LI_MUTED }}>JPEG, PNG, WEBP · Max 10MB</p>
+                  </>}
                 {error && <p className="text-xs mt-2 font-medium" style={{ color: '#CC1016' }}>{error}</p>}
               </div>
+              {imageUrl && (
+                <div className="px-4 pb-4">
+                  <button onClick={() => { setImageUrl(null); setColors([]); setPaletteName(''); }}
+                    className="w-full flex items-center justify-center gap-2 py-2 rounded-full text-sm border transition-colors"
+                    style={{ borderColor: LI_BORDER, color: LI_MUTED }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = '#CC1016'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = LI_BORDER}>
+                    <FaArrowRotateLeft className="text-xs" /> Try another image
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Tips */}
-            {showTips && (
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-xl p-4 mt-4" style={{ border: `1px solid ${LI_BORDER}` }}>
-                <div className="flex justify-between items-center mb-3">
-                  <h2 className="font-semibold text-sm flex items-center gap-2" style={{ color: LI_TEXT }}>
-                    <FaCircleInfo style={{ color: LI_BLUE, fontSize: 13 }} /> Pro Tips
-                  </h2>
-                  <button onClick={() => setShowTips(false)} className="p-1 rounded hover:bg-gray-50">
-                    <FaXmark style={{ color: LI_MUTED, fontSize: 12 }} />
-                  </button>
-                </div>
-                <ul className="space-y-2">
-                  {[
-                    'Use high-contrast images for vibrant palettes',
-                    'Landscape photos often produce great results',
-                    'Click color swatches to copy HEX codes',
-                    'Adjust palette name before saving',
-                  ].map((tip, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs" style={{ color: LI_MUTED }}>
-                      <div className="w-1.5 h-1.5 mt-1 rounded-full flex-shrink-0" style={{ backgroundColor: LI_BLUE }} />
-                      {tip}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            )}
+            <div className="bg-white rounded-xl p-4" style={{ border: `1px solid ${LI_BORDER}` }}>
+              <h3 className="font-semibold text-sm flex items-center gap-2 mb-3" style={{ color: LI_TEXT }}>
+                <FaCircleInfo style={{ color: LI_BLUE, fontSize: 13 }} /> Tips
+              </h3>
+              <ul className="space-y-2">
+                {[
+                  'High-contrast images give more vibrant palettes',
+                  'Landscape & nature photos work great',
+                  'Click any swatch to copy the hex code',
+                  'Use Export to get CSS variables',
+                ].map((tip, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs" style={{ color: LI_MUTED }}>
+                    <div className="w-1.5 h-1.5 mt-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: LI_BLUE }} />
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          <div className="md:col-span-2">
+          {/* Right: Preview + Palette */}
+          <div className="md:col-span-2 space-y-4">
             {isLoading && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                className="bg-white rounded-xl p-8 text-center" style={{ border: `1px solid ${LI_BORDER}` }}>
-                <div className="w-12 h-12 border-4 rounded-full animate-spin mx-auto mb-4"
+              <div className="bg-white rounded-xl p-12 flex flex-col items-center gap-4"
+                style={{ border: `1px solid ${LI_BORDER}` }}>
+                <div className="w-12 h-12 border-4 rounded-full animate-spin"
                   style={{ borderColor: `${LI_BLUE}30`, borderTopColor: LI_BLUE }} />
-                <p className="text-sm font-medium" style={{ color: LI_TEXT }}>Analyzing image colors...</p>
-              </motion.div>
+                <p className="text-sm font-medium" style={{ color: LI_TEXT }}>Analyzing image colors…</p>
+              </div>
             )}
 
             {imageUrl && !isLoading && (
-              <AnimatePresence>
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                  {/* Image Preview */}
-                  <motion.div initial={{ y: 20 }} animate={{ y: 0 }}
-                    className="bg-white rounded-xl overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
-                    <div className="px-4 py-3 border-b flex justify-between items-center" style={{ borderColor: LI_BORDER }}>
-                      <h2 className="font-semibold text-sm flex items-center gap-2" style={{ color: LI_TEXT }}>
-                        <FaImage style={{ color: LI_BLUE, fontSize: 13 }} /> Image Preview
-                      </h2>
-                      <button onClick={resetAll} className="p-1.5 rounded hover:bg-gray-50"
-                        title="Reset">
-                        <FaArrowRotateLeft style={{ color: LI_MUTED, fontSize: 12 }} />
-                      </button>
-                    </div>
-                    <div className="p-4">
-                      <div className="aspect-square max-h-80 w-full rounded-lg overflow-hidden"
-                        style={{ backgroundColor: '#F3F2EF' }}>
-                        <img src={imageUrl} alt="Uploaded preview" className="w-full h-full object-contain" />
-                      </div>
-                    </div>
-                  </motion.div>
+              <>
+                {/* Image preview */}
+                <div className="bg-white rounded-xl overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
+                  <div className="px-4 py-3 border-b" style={{ borderColor: LI_BORDER }}>
+                    <span className="font-semibold text-sm" style={{ color: LI_TEXT }}>Preview</span>
+                  </div>
+                  <div className="p-4">
+                    <img src={imageUrl} alt="Uploaded" className="w-full max-h-64 object-contain rounded-lg" />
+                  </div>
+                </div>
 
-                  {/* Palette */}
-                  {colors.length > 0 && (
-                    <motion.div initial={{ y: 20 }} animate={{ y: 0 }}
+                {/* Palette */}
+                {colors.length > 0 && (
+                  <AnimatePresence>
+                    <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                       className="bg-white rounded-xl overflow-hidden" style={{ border: `1px solid ${LI_BORDER}` }}>
-                      <div className="px-4 py-3 border-b flex justify-between items-center" style={{ borderColor: LI_BORDER }}>
+                      <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: LI_BORDER }}>
                         <div className="flex items-center gap-2">
                           <FaPalette style={{ color: LI_BLUE, fontSize: 13 }} />
-                          <input
-                            type="text"
-                            value={paletteName}
-                            onChange={e => setPaletteName(e.target.value)}
+                          <input value={paletteName} onChange={e => setPaletteName(e.target.value)}
                             className="text-sm font-semibold bg-transparent outline-none"
                             style={{ color: LI_TEXT }}
-                            placeholder="Name your palette"
-                          />
+                            placeholder="Name your palette" />
                         </div>
                         <div className="flex gap-1">
-                          <button onClick={copyPalette} className="p-1.5 rounded hover:bg-gray-50" title="Copy All">
-                            <FaClipboard style={{ color: LI_MUTED, fontSize: 12 }} />
+                          <button onClick={() => setShowExport(true)}
+                            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold border"
+                            style={{ borderColor: LI_BLUE, color: LI_BLUE }}>
+                            <FaCode className="text-[10px]" /> Export
                           </button>
-                          <button onClick={downloadPalette} className="p-1.5 rounded hover:bg-gray-50" title="Download">
-                            <FaDownload style={{ color: LI_MUTED, fontSize: 12 }} />
+                          <button onClick={downloadPNG}
+                            className="p-1.5 rounded hover:bg-gray-50" title="Download PNG">
+                            <FaDownload style={{ color: LI_MUTED, fontSize: 13 }} />
                           </button>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <div className="grid grid-cols-6 gap-2 h-28">
-                          {colors.map((color, index) => (
-                            <motion.div
-                              key={index}
-                              initial={{ scale: 0.9, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              transition={{ delay: index * 0.05 }}
-                              className="relative group cursor-pointer rounded-lg overflow-hidden"
-                              style={{ backgroundColor: color }}
-                              onClick={() => copyToClipboard(color)}
-                            >
-                              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                                <span className="px-2 py-1 rounded text-[10px] font-bold"
-                                  style={{ backgroundColor: color, color: getContrastColor(color) }}>
-                                  {color.toUpperCase()}
-                                </span>
-                              </div>
-                              {copiedColor === color && (
-                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                  <FaCheck style={{ color: '#4ade80', fontSize: 14 }} />
-                                </div>
+
+                      {/* Color swatches strip */}
+                      <div className="flex h-24">
+                        {colors.map((color, i) => (
+                          <motion.div key={i}
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.06 }}
+                            className="flex-1 relative group cursor-pointer flex items-end justify-center pb-2"
+                            style={{ backgroundColor: color }}
+                            onClick={() => copyColor(color, i)}>
+                            <AnimatePresence>
+                              {copiedIdx === i && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                  className="absolute inset-0 flex items-center justify-center"
+                                  style={{ backgroundColor: 'rgba(0,0,0,0.3)' }}>
+                                  <FaCheck className="text-white" />
+                                </motion.div>
                               )}
-                            </motion.div>
-                          ))}
-                        </div>
+                            </AnimatePresence>
+                            <span className="text-[9px] font-mono opacity-0 group-hover:opacity-100 transition-opacity px-1 rounded"
+                              style={{ color: getContrast(color), backgroundColor: 'rgba(0,0,0,0.3)' }}>
+                              {color.toUpperCase()}
+                            </span>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      {/* Color detail rows */}
+                      <div className="divide-y" style={{ borderColor: LI_BORDER }}>
+                        {colors.map((color, i) => (
+                          <div key={i}
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+                            onClick={() => copyColor(color, i)}>
+                            <div className="w-8 h-8 rounded-md flex-shrink-0" style={{ backgroundColor: color, border: `1px solid ${LI_BORDER}` }} />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold font-mono" style={{ color: LI_TEXT }}>{color.toUpperCase()}</p>
+                              <p className="text-[10px]" style={{ color: LI_MUTED }}>{toRgb(color)}</p>
+                            </div>
+                            <button className="p-1.5 opacity-0 group-hover:opacity-100 rounded transition-colors"
+                              style={{ color: copiedIdx === i ? '#057642' : LI_MUTED }}>
+                              {copiedIdx === i ? <FaCheck className="text-xs" /> : <FaCopy className="text-xs" />}
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     </motion.div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
+                  </AnimatePresence>
+                )}
+              </>
+            )}
+
+            {/* Empty state */}
+            {!imageUrl && !isLoading && (
+              <div className="bg-white rounded-xl p-16 text-center" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{ backgroundColor: '#EEF3F8' }}>
+                  <FaImage style={{ color: LI_BLUE, fontSize: 28 }} />
+                </div>
+                <p className="text-sm font-medium mb-1" style={{ color: LI_TEXT }}>Upload an image to extract its palette</p>
+                <p className="text-xs" style={{ color: LI_MUTED }}>Supports JPEG, PNG, and WEBP</p>
+              </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Export Modal */}
+      <AnimatePresence>
+        {showExport && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+            onClick={() => setShowExport(false)}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+              style={{ border: `1px solid ${LI_BORDER}` }}
+              onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold" style={{ color: LI_TEXT }}>Export Palette</h3>
+                <button onClick={() => setShowExport(false)} className="p-1 rounded hover:bg-gray-100">
+                  <FaXmark style={{ color: LI_MUTED }} />
+                </button>
+              </div>
+              <div className="flex rounded-lg overflow-hidden mb-4 h-8">
+                {colors.map((c, i) => <div key={i} style={{ flex: 1, backgroundColor: c }} />)}
+              </div>
+              <div className="flex gap-1 bg-gray-100 rounded-lg p-1 mb-3">
+                {EXPORT_TABS.map(({ id, label }) => (
+                  <button key={id} onClick={() => setExportTab(id)}
+                    className="flex-1 py-1.5 rounded-md text-xs font-semibold transition-colors"
+                    style={{ backgroundColor: exportTab === id ? '#fff' : 'transparent', color: exportTab === id ? LI_TEXT : LI_MUTED }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <pre className="text-xs rounded-lg p-3 overflow-auto mb-4 font-mono"
+                style={{ backgroundColor: '#F3F2EF', color: LI_TEXT, maxHeight: 160 }}>
+                {EXPORT_TABS.find(t => t.id === exportTab)?.code}
+              </pre>
+              <button onClick={() => { navigator.clipboard.writeText(EXPORT_TABS.find(t => t.id === exportTab)?.code || ''); toast.success('Copied!'); }}
+                className="w-full py-2.5 rounded-full text-white text-sm font-semibold flex items-center justify-center gap-2"
+                style={{ backgroundColor: LI_BLUE }}>
+                <FaCopy /> Copy Code
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-export default ImageToPalette

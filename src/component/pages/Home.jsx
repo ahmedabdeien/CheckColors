@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   FaPalette, FaWandMagicSparkles, FaArrowRight,
-  FaCircleHalfStroke, FaImage, FaShuffle, FaEye, FaStar,
-  FaPlay, FaBolt, FaUsers, FaFill, FaDroplet
+  FaCircleHalfStroke, FaImage, FaShuffle, FaStar,
+  FaPlay, FaBolt, FaUsers, FaFill, FaDroplet, FaSwatchbook
 } from 'react-icons/fa6';
 
 const LI_BLUE = '#0A66C2';
@@ -26,12 +27,12 @@ const stats = [
 ];
 
 const features = [
-  { icon: FaPalette,           title: 'Color Explorer',     desc: 'Browse thousands of curated color palettes for every design need.', link: '/Color-Palettes' },
+  { icon: FaPalette,           title: 'Color Palettes',     desc: 'Browse thousands of curated color palettes for every design need.', link: '/Color-Palettes' },
   { icon: FaCircleHalfStroke,  title: 'Contrast Checker',   desc: 'Ensure WCAG accessibility compliance with real-time contrast analysis.', link: '/Contrast-Checker' },
   { icon: FaWandMagicSparkles, title: 'AI Color Generator', desc: 'Generate perfect palettes instantly using artificial intelligence.', link: '/Ai-Colors' },
   { icon: FaImage,             title: 'Image to Palette',   desc: 'Extract beautiful color schemes from any image in seconds.', link: '/image-to-palette' },
   { icon: FaShuffle,           title: 'Palette Generator',  desc: 'Create harmonious color combinations with one click.', link: '/Generate-Palette' },
-  { icon: FaEye,               title: 'Color Vision',       desc: 'Explore and visualize colors across the full spectrum.', link: '/ExplorerColor' },
+  { icon: FaSwatchbook,        title: 'Color Library',      desc: 'Explore 200+ named colors with HEX, RGB, and HSL values.', link: '/colors' },
   { icon: FaFill,              title: 'Gradient Generator', desc: 'Create stunning CSS gradients with live preview and instant export.', link: '/gradient-generator' },
   { icon: FaDroplet,           title: 'Tints & Shades',     desc: 'Generate the perfect tints and shades scale from any base color.', link: '/tints-shades' },
 ];
