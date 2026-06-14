@@ -4,34 +4,65 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const hpp = require('hpp');
+const compression = require('compression');
 const connectDB = require('./config/db');
 
 const app = express();
 connectDB();
 
-// Trust Render/Vercel proxy
+// Trust Render proxy
 app.set('trust proxy', 1);
 
-// Security
-app.use(helmet());
+// CORS — يقبل Vercel domains + localhost
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5178',
+  /\.vercel\.app$/,
+  /\.check-colors/,
+];
+if (process.env.CLIENT_URL) allowedOrigins.push(process.env.CLIENT_URL);
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // Postman / server-to-server
+    const allowed = allowedOrigins.some(o =>
+      typeof o === 'string' ? o === origin : o.test(origin)
+    );
+    callback(allowed ? null : new Error('CORS blocked'), allowed);
+  },
   credentials: true,
 }));
 
-// Rate limiting
-app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: 'طلبات كثيرة، انتظر قليلاً', validate: { xForwardedForHeader: false } }));
-app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 200, validate: { xForwardedForHeader: false } }));
+// Security headers
+app.use(helmet());
 
-// Body parser (webhook route needs raw body, so it's handled in routes/subscriptions.js)
+// Compression
+app.use(compression());
+
+// Rate limiting
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, message: { message: 'طلبات كثيرة، انتظر 15 دقيقة' }, validate: { xForwardedForHeader: false } });
+const apiLimiter  = rateLimit({ windowMs: 15 * 60 * 1000, max: 300, validate: { xForwardedForHeader: false } });
+
+app.use('/api/auth', authLimiter);
+app.use('/api', apiLimiter);
+
+// Body parser
 app.use('/api/subscriptions/webhook', express.raw({ type: 'application/json' }));
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// Security middleware
+app.use(mongoSanitize());  // prevent NoSQL injection
+app.use(hpp());            // prevent HTTP param pollution
+
 app.use(morgan('dev'));
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/palettes', require('./routes/palettes'));
+app.use('/api/auth',          require('./routes/auth'));
+app.use('/api/admin',         require('./routes/admin'));
+app.use('/api/palettes',      require('./routes/palettes'));
 app.use('/api/subscriptions', require('./routes/subscriptions'));
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));
@@ -39,8 +70,9 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }
 // 404
 app.use((req, res) => res.status(404).json({ message: 'المسار غير موجود' }));
 
-// Error handler
+// Global error handler
 app.use((err, req, res, next) => {
+  if (err.message === 'CORS blocked') return res.status(403).json({ message: 'غير مسموح' });
   console.error(err.stack);
   res.status(500).json({ message: 'خطأ في الخادم' });
 });
