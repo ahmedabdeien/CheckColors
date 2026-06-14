@@ -9,6 +9,9 @@ const connectDB = require('./config/db');
 const app = express();
 connectDB();
 
+// Trust Render/Vercel proxy
+app.set('trust proxy', 1);
+
 // Security
 app.use(helmet());
 app.use(cors({
