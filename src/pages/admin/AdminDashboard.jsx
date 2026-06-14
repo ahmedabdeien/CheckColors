@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import CheckColorsLogo from '../../assets/cc-logo.svg';
 import {
   FaUsers, FaTableCells, FaArrowTrendUp, FaStar, FaMagnifyingGlass,
   FaToggleOn, FaToggleOff, FaTrash, FaHouse, FaShieldHalved,
@@ -85,8 +86,7 @@ export default function AdminDashboard() {
         style={{ borderColor: LI_BORDER }}>
         <div className="p-4 border-b" style={{ borderColor: LI_BORDER }}>
           <Link to="/" className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded flex items-center justify-center text-white text-sm font-bold"
-              style={{ backgroundColor: LI_BLUE }}>C</div>
+            <img src={CheckColorsLogo} alt="CheckColors" className="w-8 h-8" />
             <span className="font-bold text-sm" style={{ color: LI_TEXT }}>CheckColors</span>
           </Link>
           <div className="flex items-center gap-1.5">

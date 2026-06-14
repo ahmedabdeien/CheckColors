@@ -3,7 +3,7 @@ import {
   FaBars, FaXmark, FaChevronDown, FaPalette, FaWandMagicSparkles,
   FaRightFromBracket, FaGauge, FaShieldHalved, FaCrown, FaMagnifyingGlass,
   FaEye, FaImage, FaShuffle, FaCircleHalfStroke,
-  FaHouse, FaCircleInfo, FaEnvelope, FaTag
+  FaHouse, FaCircleInfo, FaEnvelope, FaTag, FaFill, FaDroplet
 } from 'react-icons/fa6';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -45,8 +45,10 @@ const Navbar = () => {
     { to: '/ExplorerColor', label: 'Explorer Color', icon: FaEye },
     { to: '/Contrast-Checker', label: 'Contrast Checker', icon: FaCircleHalfStroke },
     { to: '/image-to-palette', label: 'Image to Palette', icon: FaImage },
-    { to: '/Generate-Palette', label: 'Generate Palette', icon: FaShuffle },
-    { to: '/Ai-Colors', label: 'AI Colors', icon: FaWandMagicSparkles },
+    { to: '/Generate-Palette',    label: 'Generate Palette',    icon: FaShuffle },
+    { to: '/Ai-Colors',           label: 'AI Colors',           icon: FaWandMagicSparkles },
+    { to: '/gradient-generator',  label: 'Gradient Generator',  icon: FaFill },
+    { to: '/tints-shades',        label: 'Tints & Shades',      icon: FaDroplet },
   ];
 
   const isActive = (p) => location.pathname === p;

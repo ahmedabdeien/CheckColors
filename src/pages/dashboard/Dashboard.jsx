@@ -6,8 +6,9 @@ import toast from 'react-hot-toast';
 import {
   FaTableCells, FaStar, FaUsers, FaCopy, FaRightFromBracket,
   FaGear, FaBolt, FaShieldHalved, FaCrown, FaTrash, FaEye,
-  FaPlus, FaChartBar, FaPalette
+  FaPlus, FaChartBar, FaPalette, FaHouse
 } from 'react-icons/fa6';
+import CheckColorsLogo from '../../assets/cc-logo.svg';
 
 const LI_BLUE = '#0A66C2';
 const LI_BG = '#F3F2EF';
@@ -56,23 +57,38 @@ export default function Dashboard() {
 
   return (
     <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
-      {/* Top bar */}
-      <div className="bg-white sticky top-14 z-10 border-b" style={{ borderColor: LI_BORDER }}>
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-base"
+      {/* Top navbar */}
+      <div className="bg-white sticky top-0 z-20 border-b" style={{ borderColor: LI_BORDER }}>
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+            <img src={CheckColorsLogo} alt="CheckColors" className="w-8 h-8" />
+            <span className="font-bold text-sm hidden sm:block" style={{ color: LI_BLUE }}>CheckColors</span>
+          </Link>
+
+          {/* User info */}
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
               style={{ background: `linear-gradient(135deg, ${LI_BLUE}, #5BA4CF)` }}>
               {user?.name?.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <p className="font-semibold text-sm" style={{ color: LI_TEXT }}>{user?.name}</p>
-              <span className="text-xs px-2 py-0.5 rounded-sm font-medium"
-                style={{ backgroundColor: planStyle.bg, color: planStyle.color }}>
-                {planStyle.label}
-              </span>
+            <div className="hidden sm:block">
+              <p className="text-xs font-semibold leading-tight" style={{ color: LI_TEXT }}>{user?.name?.split(' ')[0]}</p>
+              <span className="text-[10px] font-medium" style={{ color: planStyle.color }}>{planStyle.label}</span>
             </div>
           </div>
+
+          <div className="flex-1" />
+
+          {/* Actions */}
           <div className="flex items-center gap-2">
+            <Link to="/"
+              className="hidden sm:flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-medium transition-colors"
+              style={{ borderColor: LI_BORDER, color: LI_MUTED }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = LI_BLUE}
+              onMouseLeave={e => e.currentTarget.style.borderColor = LI_BORDER}>
+              <FaHouse className="text-[10px]" /> Home
+            </Link>
             {isAdmin && (
               <Link to="/admin"
                 className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-semibold"
@@ -80,8 +96,11 @@ export default function Dashboard() {
                 <FaShieldHalved /> Admin
               </Link>
             )}
-            <button onClick={logout} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-semibold"
-              style={{ borderColor: LI_BORDER, color: LI_MUTED }}>
+            <button onClick={logout}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border font-semibold transition-colors"
+              style={{ borderColor: LI_BORDER, color: LI_MUTED }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#CC1016'; e.currentTarget.style.color = '#CC1016'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = LI_BORDER; e.currentTarget.style.color = LI_MUTED; }}>
               <FaRightFromBracket /> Sign out
             </button>
           </div>

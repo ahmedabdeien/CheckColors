@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import {
   FaPalette, FaWandMagicSparkles, FaArrowRight,
   FaCircleHalfStroke, FaImage, FaShuffle, FaEye, FaStar,
-  FaPlay, FaBolt, FaUsers
+  FaPlay, FaBolt, FaUsers, FaFill, FaDroplet
 } from 'react-icons/fa6';
 
 const LI_BLUE = '#0A66C2';
@@ -32,6 +32,8 @@ const features = [
   { icon: FaImage,             title: 'Image to Palette',   desc: 'Extract beautiful color schemes from any image in seconds.', link: '/image-to-palette' },
   { icon: FaShuffle,           title: 'Palette Generator',  desc: 'Create harmonious color combinations with one click.', link: '/Generate-Palette' },
   { icon: FaEye,               title: 'Color Vision',       desc: 'Explore and visualize colors across the full spectrum.', link: '/ExplorerColor' },
+  { icon: FaFill,              title: 'Gradient Generator', desc: 'Create stunning CSS gradients with live preview and instant export.', link: '/gradient-generator' },
+  { icon: FaDroplet,           title: 'Tints & Shades',     desc: 'Generate the perfect tints and shades scale from any base color.', link: '/tints-shades' },
 ];
 
 export default function Home() {

@@ -22,6 +22,8 @@ import GeneratePalette from './component/pages/GeneratePalette '
 import AiColors from './component/pages/AiColors'
 import Colors from './component/pages/Colors'
 import ExplorerColor from './component/pages/ExplorerColor'
+import GradientGenerator from './component/pages/GradientGenerator'
+import TintsShades from './component/pages/TintsShades'
 
 // Auth pages (no Navbar/Footer)
 import Login from './pages/auth/Login'
@@ -59,6 +61,8 @@ function App() {
           <Route path="/Ai-Colors" element={<PublicLayout><AiColors /></PublicLayout>} />
           <Route path="/colors" element={<PublicLayout><Colors /></PublicLayout>} />
           <Route path="/ExplorerColor" element={<PublicLayout><ExplorerColor /></PublicLayout>} />
+          <Route path="/gradient-generator" element={<PublicLayout><GradientGenerator /></PublicLayout>} />
+          <Route path="/tints-shades" element={<PublicLayout><TintsShades /></PublicLayout>} />
           <Route path="/pricing" element={<PublicLayout><Pricing /></PublicLayout>} />
 
           {/* Auth (no layout) */}
