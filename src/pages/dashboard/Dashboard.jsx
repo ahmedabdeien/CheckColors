@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import api from '../../api/axios';
@@ -101,12 +101,15 @@ export default function Dashboard() {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const [palettes, setPalettes] = useState([]);
   const [savedColors, setSavedColors] = useState([]);
   const [referrals, setReferrals] = useState(null);
-  const [tab, setTab] = useState('palettes');
+  const [tab, setTab] = useState(searchParams.get('tab') || 'palettes');
   const [loadingPalettes, setLoadingPalettes] = useState(true);
   const [loadingColors, setLoadingColors] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   // Saved color picker state
   const [pickerHex, setPickerHex] = useState('#0A66C2');
@@ -115,6 +118,18 @@ export default function Dashboard() {
   const [colorSearch, setColorSearch] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
+
+  // Handle Stripe redirect back
+  useEffect(() => {
+    const subParam = searchParams.get('subscription');
+    if (subParam === 'success') {
+      toast.success(t('dashboard.subSuccess', 'Subscription activated! Welcome aboard 🎉'));
+      setSearchParams({});
+    } else if (subParam === 'cancelled') {
+      toast(t('dashboard.subCancelled', 'Payment cancelled — no charges made.'));
+      setSearchParams({});
+    }
+  }, []);
 
   useEffect(() => {
     api.get('/palettes/my').then(r => setPalettes(r.data.palettes)).finally(() => setLoadingPalettes(false));
@@ -133,6 +148,36 @@ export default function Dashboard() {
     await api.delete(`/palettes/${id}`);
     setPalettes(p => p.filter(x => x._id !== id));
     toast.success(t('dashboard.paletteDeleted', 'Palette deleted'));
+  };
+
+  const openPortal = async () => {
+    setPortalLoading(true);
+    try {
+      const { data } = await api.post('/subscriptions/portal');
+      window.location.href = data.url;
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('common.error'));
+    } finally { setPortalLoading(false); }
+  };
+
+  const cancelSub = async () => {
+    if (!confirm(t('dashboard.confirmCancel', 'Cancel subscription at period end?'))) return;
+    setCancelLoading(true);
+    try {
+      const { data } = await api.post('/subscriptions/cancel');
+      toast.success(data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('common.error'));
+    } finally { setCancelLoading(false); }
+  };
+
+  const reactivateSub = async () => {
+    try {
+      const { data } = await api.post('/subscriptions/reactivate');
+      toast.success(data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('common.error'));
+    }
   };
 
   const saveColor = async () => {
@@ -335,7 +380,7 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {[
                   { label: t('dashboard.palettes'), value: palettes.length, max: 10, color: LI_BLUE },
-                  { label: t('dashboard.aiGenerations'), value: user?.aiGenerations || 0, max: 10, color: '#7C3AED' },
+                  { label: t('dashboard.aiGenerations'), value: user?.aiGenerations || 0, max: 5, color: '#7C3AED' },
                 ].map(({ label, value, max, color }) => (
                   <div key={label}>
                     <div className="flex justify-between text-xs mb-1">
@@ -375,11 +420,19 @@ export default function Dashboard() {
             <div className="bg-white rounded-xl" style={{ border: `1px solid ${LI_BORDER}` }}>
               <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: LI_BORDER }}>
                 <h2 className="font-semibold text-base" style={{ color: LI_TEXT }}>{t('dashboard.myPalettes')} ({palettes.length})</h2>
-                <Link to="/Generate-Palette"
-                  className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-full text-white font-semibold"
-                  style={{ backgroundColor: LI_BLUE }}>
-                  <FaPlus /> {t('dashboard.newPalette')}
-                </Link>
+                {plan === 'free' && palettes.length >= 10 ? (
+                  <Link to="/pricing"
+                    className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-full font-semibold"
+                    style={{ backgroundColor: '#FFF3F3', color: '#CC1016', border: '1px solid #FECACA' }}>
+                    <FaCrown size={11} /> {t('common.upgradeRequired')}
+                  </Link>
+                ) : (
+                  <Link to="/Generate-Palette"
+                    className="flex items-center gap-1.5 text-xs px-4 py-2 rounded-full text-white font-semibold"
+                    style={{ backgroundColor: LI_BLUE }}>
+                    <FaPlus /> {t('dashboard.newPalette')}
+                  </Link>
+                )}
               </div>
               <div className="p-5">
                 {loadingPalettes ? (
@@ -651,6 +704,10 @@ export default function Dashboard() {
                   { label: t('dashboard.email'),    value: user?.email },
                   { label: t('dashboard.memberSince'), value: new Date(user?.createdAt).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'long' }) },
                   { label: t('dashboard.plan'),     value: planStyle.label },
+                  ...(plan !== 'free' && user?.subscription?.currentPeriodEnd ? [{
+                    label: t('dashboard.renewsOn', 'Renews on'),
+                    value: new Date(user.subscription.currentPeriodEnd).toLocaleDateString(i18n.language === 'ar' ? 'ar-SA' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+                  }] : []),
                 ].map(({ label, value }) => (
                   <div key={label} className="flex items-center justify-between py-3">
                     <span className="text-sm" style={{ color: LI_MUTED }}>{label}</span>
@@ -658,7 +715,23 @@ export default function Dashboard() {
                   </div>
                 ))}
               </div>
-              <div className="px-5 pb-5">
+
+              {/* Subscription cancelled warning */}
+              {plan !== 'free' && user?.subscription?.cancelAtPeriodEnd && (
+                <div className="mx-5 mb-4 p-3 rounded-xl flex items-center justify-between gap-3"
+                  style={{ backgroundColor: '#FFF3F3', border: '1px solid #FECACA' }}>
+                  <p className="text-xs" style={{ color: '#CC1016' }}>
+                    {t('dashboard.cancelWarning', 'Your subscription will end on')} {new Date(user?.subscription?.currentPeriodEnd).toLocaleDateString()}
+                  </p>
+                  <button onClick={reactivateSub}
+                    className="text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: '#057642', color: '#fff' }}>
+                    {t('dashboard.reactivate', 'Keep plan')}
+                  </button>
+                </div>
+              )}
+
+              <div className="px-5 pb-5 space-y-2">
                 {plan === 'free' ? (
                   <Link to="/pricing"
                     className="block w-full text-center py-2.5 rounded-full font-semibold text-sm"
@@ -666,10 +739,26 @@ export default function Dashboard() {
                     {t('dashboard.upgradeNow')}
                   </Link>
                 ) : (
-                  <button className="w-full text-sm py-2 rounded-full border font-medium"
-                    style={{ borderColor: '#CC1016', color: '#CC1016' }}>
-                    {t('dashboard.cancelSub')}
-                  </button>
+                  <>
+                    <button onClick={openPortal} disabled={portalLoading}
+                      className="w-full flex items-center justify-center gap-2 text-sm py-2.5 rounded-full font-semibold disabled:opacity-60"
+                      style={{ backgroundColor: LI_BLUE, color: '#fff' }}>
+                      {portalLoading
+                        ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        : null}
+                      {t('dashboard.manageSubscription', 'Manage Subscription')}
+                    </button>
+                    {!user?.subscription?.cancelAtPeriodEnd && (
+                      <button onClick={cancelSub} disabled={cancelLoading}
+                        className="w-full text-sm py-2 rounded-full border font-medium disabled:opacity-60"
+                        style={{ borderColor: '#CC1016', color: '#CC1016' }}>
+                        {cancelLoading
+                          ? <span className="inline-block w-3 h-3 border-2 border-red-300 border-t-red-600 rounded-full animate-spin mr-1" />
+                          : null}
+                        {t('dashboard.cancelSub')}
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
