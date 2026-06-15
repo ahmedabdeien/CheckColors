@@ -14,10 +14,9 @@ connectDB();
 // Trust Render proxy
 app.set('trust proxy', 1);
 
-// CORS — يقبل Vercel domains + localhost
+// CORS — يقبل Vercel domains + أي port على localhost
 const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5178',
+  /^http:\/\/localhost(:\d+)?$/,   // any localhost port in dev
   /\.vercel\.app$/,
   /\.check-colors/,
 ];

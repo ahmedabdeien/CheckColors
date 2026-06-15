@@ -38,7 +38,11 @@ export default function GlobalSearch() {
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const [recent, setRecent] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch { return []; }
+    try {
+      const stored = JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+      // Restore icon function from ALL_ITEMS (JSON.stringify drops functions)
+      return stored.map(s => ALL_ITEMS.find(i => i.path === s.path) || s).filter(Boolean);
+    } catch { return []; }
   });
   const inputRef = useRef(null);
   const isRTL = i18n.language === 'ar';
