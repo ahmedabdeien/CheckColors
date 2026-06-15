@@ -37,7 +37,7 @@ const getUsers = async (req, res) => {
     const plan = req.query.plan;
 
     const query = {};
-    if (search) query.$or = [{ name: /search/i }, { email: new RegExp(search, 'i') }];
+    if (search) query.$or = [{ name: new RegExp(search, 'i') }, { email: new RegExp(search, 'i') }];
     if (role) query.role = role;
     if (plan) query['subscription.plan'] = plan;
 

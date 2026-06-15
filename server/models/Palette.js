@@ -7,6 +7,7 @@ const paletteSchema = new mongoose.Schema({
   tags: [{ type: String }],
   isPublic: { type: Boolean, default: false },
   likes: { type: Number, default: 0 },
+  likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   source: { type: String, enum: ['manual', 'ai', 'image', 'generate'], default: 'manual' },
 }, { timestamps: true });
 

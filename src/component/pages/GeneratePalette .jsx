@@ -2,11 +2,15 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   FaCopy, FaWandMagicSparkles, FaDownload, FaClockRotateLeft,
   FaLock, FaLockOpen, FaCheck, FaPalette, FaCode, FaArrowsRotate,
-  FaXmark, FaShuffle
+  FaXmark, FaShuffle, FaBookmark, FaEye, FaEyeSlash, FaArrowRight,
 } from 'react-icons/fa6';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import chroma from 'chroma-js';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
+import api from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
 
 const LI_BLUE = '#0A66C2';
 const LI_BG = '#F3F2EF';
@@ -102,12 +106,20 @@ const toRgb = (hex) => {
 };
 
 export default function GeneratePalette() {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+  const { user } = useAuth();
+
   const [palette, setPalette] = useState([]);
   const [locked, setLocked] = useState(Array(5).fill(false));
   const [mode, setMode] = useState('random');
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [showExport, setShowExport] = useState(false);
+  const [showSave, setShowSave] = useState(false);
+  const [saveName, setSaveName] = useState('');
+  const [savePublic, setSavePublic] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [copied, setCopied] = useState(null);
   const [exportTab, setExportTab] = useState('css');
 
@@ -135,6 +147,29 @@ export default function GeneratePalette() {
     setCopied(id);
     toast.success(`Copied ${hex}`);
     setTimeout(() => setCopied(null), 1500);
+  };
+
+  const savePalette = async () => {
+    if (!user) { toast.error(t('auth.signIn', 'Sign in to save palettes')); return; }
+    setSaving(true);
+    try {
+      await api.post('/palettes', {
+        name: saveName.trim() || 'My Palette',
+        colors: palette,
+        isPublic: savePublic,
+        source: 'generate',
+      });
+      toast.success(t('dashboard.paletteSaved', 'Palette saved!'));
+      setShowSave(false);
+      setSaveName('');
+    } catch (err) {
+      const msg = err.response?.data?.message || t('common.error');
+      if (err.response?.data?.upgrade) {
+        toast.error(msg);
+      } else {
+        toast.error(msg);
+      }
+    } finally { setSaving(false); }
   };
 
   const toggleLock = (i) => setLocked(l => l.map((v, idx) => idx === i ? !v : v));
@@ -172,7 +207,7 @@ export default function GeneratePalette() {
   ];
 
   return (
-    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="max-w-5xl mx-auto px-4 pt-10 pb-6 text-center">
         <div className="flex items-center justify-center gap-3 mb-2">
@@ -272,17 +307,31 @@ export default function GeneratePalette() {
             style={{ backgroundColor: LI_BLUE }}
             onMouseEnter={e => e.currentTarget.style.backgroundColor = '#004182'}
             onMouseLeave={e => e.currentTarget.style.backgroundColor = LI_BLUE}>
-            <FaArrowsRotate /> Generate
+            <FaArrowsRotate /> {t('explore.generate', 'Generate')}
           </button>
+          {/* Save Palette */}
+          {user ? (
+            <button onClick={() => { setSaveName('My Palette'); setShowSave(true); }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border"
+              style={{ borderColor: '#057642', color: '#057642', backgroundColor: '#F0FFF6' }}>
+              <FaBookmark className="text-xs" /> {t('common.save')}
+            </button>
+          ) : (
+            <Link to="/register"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border"
+              style={{ borderColor: LI_BLUE, color: LI_BLUE, backgroundColor: '#EEF3F8' }}>
+              <FaBookmark className="text-xs" /> {t('common.save')}
+            </Link>
+          )}
           <button onClick={() => generate('random', Array(5).fill(false), [])}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border"
             style={{ borderColor: LI_BORDER, color: LI_TEXT, backgroundColor: '#fff' }}>
-            <FaShuffle className="text-xs" style={{ color: LI_MUTED }} /> Random
+            <FaShuffle className="text-xs" style={{ color: LI_MUTED }} /> {t('explore.random', 'Random')}
           </button>
           <button onClick={() => setShowExport(true)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border"
             style={{ borderColor: LI_BORDER, color: LI_TEXT, backgroundColor: '#fff' }}>
-            <FaCode className="text-xs" style={{ color: LI_BLUE }} /> Export
+            <FaCode className="text-xs" style={{ color: LI_BLUE }} /> {t('gradient.copyCss', 'Export')}
           </button>
           <button onClick={downloadPNG}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border"
@@ -292,7 +341,7 @@ export default function GeneratePalette() {
           <button onClick={() => setShowHistory(!showHistory)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border"
             style={{ borderColor: LI_BORDER, color: LI_TEXT, backgroundColor: '#fff' }}>
-            <FaClockRotateLeft className="text-xs" style={{ color: LI_MUTED }} /> History
+            <FaClockRotateLeft className="text-xs" style={{ color: LI_MUTED }} /> {t('explore.history', 'History')}
           </button>
         </div>
 
@@ -315,6 +364,58 @@ export default function GeneratePalette() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Save Modal */}
+      <AnimatePresence>
+        {showSave && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+            onClick={() => setShowSave(false)}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+              className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl"
+              style={{ border: `1px solid ${LI_BORDER}` }}
+              onClick={e => e.stopPropagation()}
+              dir={isRTL ? 'rtl' : 'ltr'}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold" style={{ color: LI_TEXT }}>{t('dashboard.savePalette', 'Save Palette')}</h3>
+                <button onClick={() => setShowSave(false)} className="p-1 rounded-full hover:bg-gray-100">
+                  <FaXmark style={{ color: LI_MUTED }} />
+                </button>
+              </div>
+              {/* Preview strip */}
+              <div className="flex rounded-lg overflow-hidden mb-4 h-10">
+                {palette.map((c, i) => <div key={i} style={{ flex: 1, backgroundColor: c }} />)}
+              </div>
+              {/* Name input */}
+              <label className="block text-xs font-semibold mb-1" style={{ color: LI_MUTED }}>{t('dashboard.paletteName', 'Palette Name')}</label>
+              <input
+                value={saveName}
+                onChange={e => setSaveName(e.target.value)}
+                placeholder={t('dashboard.paletteName', 'My Palette')}
+                className="w-full border rounded-lg px-3 py-2 text-sm mb-4 outline-none focus:ring-2"
+                style={{ borderColor: LI_BORDER, color: LI_TEXT, '--tw-ring-color': LI_BLUE }}
+              />
+              {/* Public toggle */}
+              <div className="flex items-center gap-3 mb-5">
+                <button onClick={() => setSavePublic(p => !p)}
+                  className={`w-10 h-5 rounded-full transition-colors flex items-center px-0.5 ${savePublic ? 'justify-end' : 'justify-start'}`}
+                  style={{ backgroundColor: savePublic ? LI_BLUE : LI_BORDER }}>
+                  <span className="w-4 h-4 bg-white rounded-full shadow block" />
+                </button>
+                <span className="text-sm" style={{ color: LI_TEXT }}>
+                  {savePublic ? <><FaEye className="inline mr-1" />{t('explore.public', 'Public')}</> : <><FaEyeSlash className="inline mr-1" />{t('explore.private', 'Private')}</>}
+                </span>
+              </div>
+              <button onClick={savePalette} disabled={saving}
+                className="w-full py-2.5 rounded-full text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                style={{ backgroundColor: '#057642' }}>
+                <FaBookmark /> {saving ? t('common.saving', 'Saving…') : t('common.save', 'Save')}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Export Modal */}
       <AnimatePresence>

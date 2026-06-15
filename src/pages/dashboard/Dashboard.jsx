@@ -10,7 +10,7 @@ import {
   FaGear, FaBolt, FaShieldHalved, FaCrown, FaTrash, FaEye,
   FaPlus, FaPalette, FaHouse, FaCircleHalfStroke, FaFill, FaDroplet,
   FaWandMagicSparkles, FaImage, FaShuffle, FaBookmark, FaMagnifyingGlass,
-  FaCheck, FaPen, FaXmark, FaArrowRight, FaRocket,
+  FaCheck, FaPen, FaXmark, FaArrowRight, FaRocket, FaHeart,
 } from 'react-icons/fa6';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -148,6 +148,15 @@ export default function Dashboard() {
     await api.delete(`/palettes/${id}`);
     setPalettes(p => p.filter(x => x._id !== id));
     toast.success(t('dashboard.paletteDeleted', 'Palette deleted'));
+  };
+
+  const likePalette = async (id) => {
+    try {
+      const { data } = await api.post(`/palettes/${id}/like`);
+      setPalettes(ps => ps.map(p => p._id === id ? { ...p, likes: data.likes, likedByMe: data.likedByMe } : p));
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('common.error'));
+    }
   };
 
   const openPortal = async () => {
@@ -457,7 +466,12 @@ export default function Dashboard() {
                             <p className="text-[10px]" style={{ color: LI_MUTED }}>{p.colors.length} {t('dashboard.colorsCount', 'colors')}</p>
                           </div>
                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-1.5 rounded" style={{ color: LI_BLUE }} title={t('common.edit')}><FaEye className="text-xs" /></button>
+                            <button onClick={() => likePalette(p._id)} className="p-1.5 rounded flex items-center gap-0.5"
+                              style={{ color: p.likedByMe ? '#CC1016' : LI_MUTED }} title={t('common.like', 'Like')}>
+                              <FaHeart className="text-xs" />
+                              {p.likes > 0 && <span className="text-[9px]">{p.likes}</span>}
+                            </button>
+                            <button className="p-1.5 rounded" style={{ color: LI_BLUE }} title={t('common.view')}><FaEye className="text-xs" /></button>
                             <button onClick={() => deletePalette(p._id)} className="p-1.5 rounded"
                               style={{ color: '#CC1016' }} title={t('common.delete')}><FaTrash className="text-xs" /></button>
                           </div>

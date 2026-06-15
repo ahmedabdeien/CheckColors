@@ -4,8 +4,13 @@ const User = require('../models/User');
 // @GET /api/palettes/my
 const getMyPalettes = async (req, res) => {
   try {
-    const palettes = await Palette.find({ user: req.user._id }).sort({ createdAt: -1 });
-    res.json({ palettes });
+    const uid = req.user._id;
+    const palettes = await Palette.find({ user: uid }).sort({ createdAt: -1 });
+    const result = palettes.map(p => ({
+      ...p.toObject(),
+      likedByMe: p.likedBy.some(id => id.equals(uid)),
+    }));
+    res.json({ palettes: result });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -86,16 +91,22 @@ const deletePalette = async (req, res) => {
   }
 };
 
-// @POST /api/palettes/:id/like
+// @POST /api/palettes/:id/like  — toggle like
 const likePalette = async (req, res) => {
   try {
-    const palette = await Palette.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { likes: 1 } },
-      { new: true }
-    );
+    const palette = await Palette.findById(req.params.id);
     if (!palette) return res.status(404).json({ message: 'الباليت غير موجود' });
-    res.json({ likes: palette.likes });
+    const uid = req.user._id;
+    const alreadyLiked = palette.likedBy.some(id => id.equals(uid));
+    if (alreadyLiked) {
+      palette.likedBy.pull(uid);
+      palette.likes = Math.max(0, palette.likes - 1);
+    } else {
+      palette.likedBy.push(uid);
+      palette.likes += 1;
+    }
+    await palette.save();
+    res.json({ likes: palette.likes, likedByMe: !alreadyLiked });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
