@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { FaPalette, FaXTwitter, FaGithub, FaLinkedin } from 'react-icons/fa6';
+import { FaXTwitter, FaGithub, FaLinkedin } from 'react-icons/fa6';
+import { useTranslation } from 'react-i18next';
 import CheckColorslogo from '../assets/cc-logo.svg';
 
 const LI_BLUE = '#0A66C2';
@@ -7,30 +8,33 @@ const LI_BORDER = '#E0DFDC';
 const LI_MUTED = '#00000099';
 const LI_TEXT = '#000000E6';
 
-const links = {
-  Product: [
-    { to: '/explore',            label: 'Explore Palettes' },
-    { to: '/Contrast-Checker',   label: 'Contrast Checker' },
-    { to: '/gradient-generator', label: 'Gradient Generator' },
-    { to: '/tints-shades',       label: 'Tints & Shades' },
-    { to: '/image-to-palette',   label: 'Image to Palette' },
-    { to: '/Ai-Colors',          label: 'AI Colors' },
-  ],
-  Company: [
-    { to: '/About', label: 'About' },
-    { to: '/Contact', label: 'Contact' },
-    { to: '/pricing', label: 'Pricing' },
-  ],
-  Account: [
-    { to: '/login', label: 'Sign In' },
-    { to: '/register', label: 'Join Now' },
-    { to: '/dashboard', label: 'Dashboard' },
-  ],
-};
-
 export default function Footer() {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+
+  const links = {
+    [t('footer.product')]: [
+      { to: '/explore',            label: t('nav.explore') },
+      { to: '/Contrast-Checker',   label: t('nav.contrast') },
+      { to: '/gradient-generator', label: t('nav.gradient') },
+      { to: '/tints-shades',       label: t('nav.tints') },
+      { to: '/image-to-palette',   label: t('nav.imageToPalette') },
+      { to: '/Ai-Colors',          label: t('nav.ai') },
+    ],
+    [t('footer.company')]: [
+      { to: '/About',   label: t('nav.about') },
+      { to: '/Contact', label: t('nav.contact') },
+      { to: '/pricing', label: t('nav.pricing') },
+    ],
+    [t('footer.account')]: [
+      { to: '/login',     label: t('auth.signin') },
+      { to: '/register',  label: t('auth.join') },
+      { to: '/dashboard', label: t('nav.dashboard') },
+    ],
+  };
+
   return (
-    <footer className="bg-white border-t" style={{ borderColor: LI_BORDER }}>
+    <footer className="bg-white border-t" style={{ borderColor: LI_BORDER }} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="grid md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -40,7 +44,7 @@ export default function Footer() {
               <span className="font-bold text-base" style={{ color: LI_BLUE }}>CheckColors</span>
             </Link>
             <p className="text-xs leading-relaxed mb-4" style={{ color: LI_MUTED }}>
-              Professional color tools for modern designers and developers.
+              {t('footer.tagline')}
             </p>
             <div className="flex items-center gap-3">
               {[FaXTwitter, FaGithub, FaLinkedin].map((Icon, i) => (
@@ -77,12 +81,12 @@ export default function Footer() {
 
         <div className="border-t mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-2"
           style={{ borderColor: LI_BORDER }}>
-          <p className="text-xs" style={{ color: LI_MUTED }}>© 2024 CheckColors. All rights reserved.</p>
+          <p className="text-xs" style={{ color: LI_MUTED }}>{t('footer.copyright')}</p>
           <div className="flex items-center gap-4">
-            {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map(t => (
-              <a key={t} href="#" className="text-xs" style={{ color: LI_MUTED }}
+            {[t('footer.privacy'), t('footer.terms'), t('footer.cookies')].map(txt => (
+              <a key={txt} href="#" className="text-xs" style={{ color: LI_MUTED }}
                 onMouseEnter={e => e.currentTarget.style.color = LI_BLUE}
-                onMouseLeave={e => e.currentTarget.style.color = LI_MUTED}>{t}</a>
+                onMouseLeave={e => e.currentTarget.style.color = LI_MUTED}>{txt}</a>
             ))}
           </div>
         </div>

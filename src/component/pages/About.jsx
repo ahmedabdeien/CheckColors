@@ -1,5 +1,6 @@
-import { FaRocket, FaUsers, FaMedal, FaLightbulb, FaHandshakeSimple, FaPalette } from 'react-icons/fa6';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { FaRocket, FaUsers, FaMedal, FaLightbulb, FaHandshakeSimple, FaPalette } from 'react-icons/fa6';
 
 const LI_BLUE = '#0A66C2';
 const LI_BG = '#F3F2EF';
@@ -7,47 +8,47 @@ const LI_BORDER = '#E0DFDC';
 const LI_TEXT = '#000000E6';
 const LI_MUTED = '#00000099';
 
-const stats = [
-  { number: '50K+', label: 'Monthly Users' },
-  { number: '1M+', label: 'Palettes Created' },
-  { number: '98%', label: 'Satisfaction Rate' },
-  { number: '150+', label: 'Countries Served' },
-];
-
-const values = [
-  { icon: FaMedal, title: 'Excellence', text: 'We pursue perfection in every palette' },
-  { icon: FaUsers, title: 'Community', text: 'Building tools for everyone' },
-  { icon: FaLightbulb, title: 'Innovation', text: 'Constantly evolving our platform' },
-  { icon: FaHandshakeSimple, title: 'Integrity', text: 'Honest and transparent practices' },
-];
-
-const team = [
-  { name: 'Alex Chen', role: 'Founder & CEO', bio: 'Color theory enthusiast with 10+ years in design' },
-  { name: 'Maria Gomez', role: 'Lead Developer', bio: 'Full-stack wizard passionate about UI/UX' },
-  { name: 'Samir Patel', role: 'Design Director', bio: 'Award-winning visual designer' },
-];
-
 export default function About() {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+
+  const stats = [
+    { number: '50K+', label: t('about.stat1') },
+    { number: '1M+',  label: t('about.stat2') },
+    { number: '98%',  label: t('about.stat3') },
+    { number: '150+', label: t('about.stat4') },
+  ];
+
+  const values = [
+    { icon: FaMedal,           title: t('about.val1Title'), text: t('about.val1Text') },
+    { icon: FaUsers,           title: t('about.val2Title'), text: t('about.val2Text') },
+    { icon: FaLightbulb,       title: t('about.val3Title'), text: t('about.val3Text') },
+    { icon: FaHandshakeSimple, title: t('about.val4Title'), text: t('about.val4Text') },
+  ];
+
+  const team = [
+    { name: t('about.team1Name'), role: t('about.team1Role'), bio: t('about.team1Bio') },
+    { name: t('about.team2Name'), role: t('about.team2Role'), bio: t('about.team2Bio') },
+    { name: t('about.team3Name'), role: t('about.team3Role'), bio: t('about.team3Bio') },
+  ];
+
   return (
-    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} dir={isRTL ? 'rtl' : 'ltr'}>
 
       {/* Hero */}
       <section className="bg-white border-b" style={{ borderColor: LI_BORDER }}>
         <div className="max-w-5xl mx-auto px-4 py-16 flex flex-col md:flex-row items-center gap-10">
           <div className="flex-1">
             <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full mb-4"
-              style={{ backgroundColor: '#EEF3F8', color: LI_BLUE }}>About Us</span>
+              style={{ backgroundColor: '#EEF3F8', color: LI_BLUE }}>{t('about.badge')}</span>
             <h1 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: LI_TEXT }}>
-              Empowering designers with beautiful color palettes
+              {t('about.headline')}
             </h1>
-            <p className="text-base mb-6" style={{ color: LI_MUTED }}>
-              Since 2023, CheckColors has been the go-to platform for designers and developers
-              who need professional color tools built for the modern web.
-            </p>
+            <p className="text-base mb-6" style={{ color: LI_MUTED }}>{t('about.subtext')}</p>
             <Link to="/register"
               className="inline-block px-6 py-2.5 rounded-full text-white text-sm font-semibold"
               style={{ backgroundColor: LI_BLUE }}>
-              Get Started Free
+              {t('about.getStarted')}
             </Link>
           </div>
           <div className="flex-shrink-0">
@@ -79,22 +80,16 @@ export default function About() {
               style={{ backgroundColor: '#EEF3F8' }}>
               <FaRocket style={{ color: LI_BLUE }} />
             </div>
-            <h2 className="text-xl font-bold" style={{ color: LI_TEXT }}>Our Mission</h2>
+            <h2 className="text-xl font-bold" style={{ color: LI_TEXT }}>{t('about.missionTitle')}</h2>
           </div>
-          <p className="text-sm mb-3" style={{ color: LI_MUTED }}>
-            To simplify color selection and palette creation for digital projects. We believe
-            that the right color combinations can transform designs and elevate user experiences.
-          </p>
-          <p className="text-sm" style={{ color: LI_MUTED }}>
-            Our platform bridges the gap between inspiration and implementation, providing
-            tools that help both beginners and professionals create stunning color schemes.
-          </p>
+          <p className="text-sm mb-3" style={{ color: LI_MUTED }}>{t('about.mission1')}</p>
+          <p className="text-sm" style={{ color: LI_MUTED }}>{t('about.mission2')}</p>
         </div>
       </section>
 
       {/* Values */}
       <section className="max-w-5xl mx-auto px-4 pb-12">
-        <h2 className="text-xl font-bold mb-6" style={{ color: LI_TEXT }}>Our Core Values</h2>
+        <h2 className="text-xl font-bold mb-6" style={{ color: LI_TEXT }}>{t('about.valuesTitle')}</h2>
         <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
           {values.map(({ icon: Icon, title, text }) => (
             <div key={title} className="bg-white rounded-xl p-6 text-center"
@@ -112,7 +107,7 @@ export default function About() {
 
       {/* Team */}
       <section className="max-w-5xl mx-auto px-4 pb-16">
-        <h2 className="text-xl font-bold mb-6" style={{ color: LI_TEXT }}>Meet the Team</h2>
+        <h2 className="text-xl font-bold mb-6" style={{ color: LI_TEXT }}>{t('about.teamTitle')}</h2>
         <div className="grid md:grid-cols-3 gap-4">
           {team.map(m => (
             <div key={m.name} className="bg-white rounded-xl p-6 flex items-start gap-4"

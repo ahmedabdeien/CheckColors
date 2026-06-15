@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { FaCopy, FaCheck, FaShuffle, FaDownload } from 'react-icons/fa6';
+import { useTranslation } from 'react-i18next';
 
 const LI_BLUE = '#0A66C2';
 const LI_BG = '#F3F2EF';
@@ -27,6 +28,8 @@ const randomHex = () => '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16).
 const STEPS = 10;
 
 export default function TintsShades() {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [base, setBase] = useState('#0A66C2');
   const [input, setInput] = useState('#0A66C2');
   const [copied, setCopied] = useState(null);
@@ -85,12 +88,12 @@ export default function TintsShades() {
   );
 
   return (
-    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="bg-white border-b" style={{ borderColor: LI_BORDER }}>
         <div className="max-w-6xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold mb-1" style={{ color: LI_TEXT }}>Tints & Shades Generator</h1>
-          <p className="text-sm" style={{ color: LI_MUTED }}>Generate light tints and dark shades from any color</p>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: LI_TEXT }}>{t('tints.title')}</h1>
+          <p className="text-sm" style={{ color: LI_MUTED }}>{t('tints.subtitle')}</p>
         </div>
       </div>
 
@@ -99,7 +102,7 @@ export default function TintsShades() {
         <div className="bg-white rounded-xl p-5 flex flex-wrap gap-4 items-end" style={{ border: `1px solid ${LI_BORDER}` }}>
           {/* Color picker */}
           <div>
-            <p className="text-xs font-semibold mb-2" style={{ color: LI_MUTED }}>BASE COLOR</p>
+            <p className="text-xs font-semibold mb-2" style={{ color: LI_MUTED }}>{t('tints.inputLabel')}</p>
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 rounded-lg overflow-hidden relative cursor-pointer flex-shrink-0"
                 style={{ border: `2px solid ${LI_BORDER}` }}>
@@ -118,9 +121,9 @@ export default function TintsShades() {
 
           {/* Mode */}
           <div>
-            <p className="text-xs font-semibold mb-2" style={{ color: LI_MUTED }}>SHOW</p>
+            <p className="text-xs font-semibold mb-2" style={{ color: LI_MUTED }}>{t('tints.all')}</p>
             <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: '#F3F2EF' }}>
-              {[['both','Both'],['tints','Tints'],['shades','Shades']].map(([v, l]) => (
+              {[['both', t('tints.all')], ['tints', t('tints.tints')], ['shades', t('tints.shades')]].map(([v, l]) => (
                 <button key={v} onClick={() => setMode(v)}
                   className="px-3 py-1.5 rounded-md text-xs font-medium transition-colors"
                   style={{ backgroundColor: mode === v ? '#fff' : 'transparent', color: mode === v ? LI_TEXT : LI_MUTED,
@@ -135,12 +138,12 @@ export default function TintsShades() {
             <button onClick={() => { const h = randomHex(); setBase(h); setInput(h); }}
               className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-medium transition-colors"
               style={{ backgroundColor: '#F3F2EF', color: LI_MUTED }}>
-              <FaShuffle /> Random
+              <FaShuffle /> {t('explore.random', 'Random')}
             </button>
             <button onClick={exportCSS}
               className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-medium transition-colors text-white"
               style={{ backgroundColor: copied === 'css' ? '#057642' : LI_BLUE }}>
-              {copied === 'css' ? <><FaCheck /> Copied!</> : <><FaDownload /> Export CSS</>}
+              {copied === 'css' ? <><FaCheck /> {t('tints.copied')}</> : <><FaDownload /> {t('gradient.copyCss')}</>}
             </button>
           </div>
         </div>
@@ -157,7 +160,7 @@ export default function TintsShades() {
         {/* Tints */}
         {(mode === 'both' || mode === 'tints') && (
           <div>
-            <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>TINTS (lighter)</p>
+            <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>{t('tints.tints')}</p>
             <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
               {tints.map((h, i) => <Swatch key={h} hex={h} label={`${(i+1)*10}%`} />)}
             </div>
@@ -167,7 +170,7 @@ export default function TintsShades() {
         {/* Shades */}
         {(mode === 'both' || mode === 'shades') && (
           <div>
-            <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>SHADES (darker)</p>
+            <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>{t('tints.shades')}</p>
             <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
               {shades.map((h, i) => <Swatch key={h} hex={h} label={`${(i+1)*10}%`} />)}
             </div>

@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   FaPaperPlane, FaCopy, FaCheck, FaWandMagicSparkles,
-  FaImage, FaLightbulb, FaRobot, FaUser, FaBookmark,
+  FaImage, FaLightbulb, FaRobot, FaUser, FaBookmark, FaArrowRight, FaCrown,
 } from 'react-icons/fa6';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Vibrant } from 'node-vibrant/browser';
@@ -34,6 +36,8 @@ const SUGGESTIONS = [
 
 export default function AiColors() {
   const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [messages, setMessages] = useState([{
     isAI: true,
     text: "مرحباً! I'm CheckColors AI, powered by Groq LLaMA 3.3 🤖\n\nDescribe any mood, theme, or style and I'll generate a perfect color palette for you. You can also upload an image to extract its colors!",
@@ -120,8 +124,12 @@ export default function AiColors() {
     }
   };
 
+  const planLimit = user?.subscription?.plan === 'enterprise' ? Infinity : user?.subscription?.plan === 'pro' ? 100 : 5;
+  const usedCount = user?.aiGenerations || 0;
+  const limitReached = user && usedCount >= planLimit;
+
   return (
-    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="max-w-2xl mx-auto px-4 py-8">
 
         {/* Header */}
@@ -131,27 +139,45 @@ export default function AiColors() {
             <FaWandMagicSparkles style={{ color: '#fff', fontSize: 20 }} />
           </div>
           <div>
-            <h1 className="text-xl font-bold" style={{ color: LI_TEXT }}>AI Color Assistant</h1>
+            <h1 className="text-xl font-bold" style={{ color: LI_TEXT }}>{t('ai.title')}</h1>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
               <span className="text-xs" style={{ color: LI_MUTED }}>Powered by Groq · LLaMA 3.3 70B</span>
             </div>
           </div>
           {user && (
-            <div className="ml-auto text-xs px-3 py-1 rounded-full"
-              style={{ backgroundColor: '#EEF3F8', color: LI_BLUE }}>
-              {user.aiGenerations || 0} / {user.subscription?.plan === 'free' ? '5' : '100'} used
+            <div className="ms-auto text-xs px-3 py-1 rounded-full"
+              style={{ backgroundColor: limitReached ? '#FFF3F3' : '#EEF3F8', color: limitReached ? '#CC1016' : LI_BLUE }}>
+              {usedCount} / {planLimit === Infinity ? '∞' : planLimit} {t('ai.used')}
             </div>
           )}
         </div>
 
+        {/* Pro upgrade banner when limit reached */}
+        {limitReached && (
+          <div className="mb-4 p-4 rounded-2xl flex items-start gap-3"
+            style={{ background: 'linear-gradient(135deg, #0A66C2, #7C3AED)', color: '#fff' }}>
+            <FaCrown style={{ fontSize: 20, flexShrink: 0, marginTop: 2 }} />
+            <div className="flex-1">
+              <p className="font-bold text-sm mb-0.5">{t('ai.proDesc')}</p>
+              <p className="text-xs opacity-80">{t('ai.upgradeTo')}</p>
+            </div>
+            <Link to="/pricing"
+              className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full flex-shrink-0"
+              style={{ backgroundColor: '#fff', color: LI_BLUE }}>
+              {t('common.upgrade')} <FaArrowRight size={10} />
+            </Link>
+          </div>
+        )}
+
         {/* Suggestion chips */}
         <div className="flex flex-wrap gap-2 mb-4">
           {SUGGESTIONS.map(s => (
-            <button key={s.label} onClick={() => send(s.prompt)}
-              className="text-xs px-3 py-1.5 rounded-full font-medium border transition-all"
+            <button key={s.label} onClick={() => !limitReached && send(s.prompt)}
+              disabled={limitReached}
+              className="text-xs px-3 py-1.5 rounded-full font-medium border transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ borderColor: LI_BORDER, color: LI_MUTED, backgroundColor: '#fff' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = LI_BLUE; e.currentTarget.style.color = LI_BLUE; e.currentTarget.style.backgroundColor = '#EEF3F8'; }}
+              onMouseEnter={e => { if (!limitReached) { e.currentTarget.style.borderColor = LI_BLUE; e.currentTarget.style.color = LI_BLUE; e.currentTarget.style.backgroundColor = '#EEF3F8'; }}}
               onMouseLeave={e => { e.currentTarget.style.borderColor = LI_BORDER; e.currentTarget.style.color = LI_MUTED; e.currentTarget.style.backgroundColor = '#fff'; }}>
               {s.label}
             </button>
@@ -318,12 +344,12 @@ export default function AiColors() {
               <input
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder="Describe a mood, theme, season, place..."
+                placeholder={t('ai.placeholder')}
                 className="flex-1 px-4 py-2.5 rounded-full text-sm outline-none"
                 style={{ backgroundColor: '#F3F2EF', border: `1px solid ${LI_BORDER}`, color: LI_TEXT }}
                 onFocus={e => e.target.style.borderColor = LI_BLUE}
                 onBlur={e => e.target.style.borderColor = LI_BORDER}
-                disabled={isTyping}
+                disabled={isTyping || limitReached}
               />
               {/* Image upload */}
               <div {...getRootProps()}
@@ -338,7 +364,7 @@ export default function AiColors() {
                   : <FaImage size={14} />}
               </div>
               {/* Send */}
-              <button type="submit" disabled={!input.trim() || isTyping}
+              <button type="submit" disabled={!input.trim() || isTyping || limitReached}
                 className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white disabled:opacity-40 transition-all"
                 style={{ background: `linear-gradient(135deg, ${LI_BLUE}, #7C3AED)` }}>
                 <FaPaperPlane size={14} />
@@ -352,10 +378,10 @@ export default function AiColors() {
           style={{ backgroundColor: '#EEF3F8', color: LI_MUTED }}>
           <FaLightbulb style={{ color: LI_BLUE, flexShrink: 0, marginTop: 1 }} />
           <span>
-            Try describing emotions, places, or styles in Arabic or English.
+            {t('ai.subtitle')}
             {user
-              ? ' Click the bookmark icon on any color to save it to your account.'
-              : ' Sign in to save colors to your account.'}
+              ? ` ${t('ai.saveColor')}`
+              : ` ${t('auth.signIn')}`}
           </span>
         </div>
       </div>

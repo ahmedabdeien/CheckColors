@@ -9,7 +9,8 @@ import {
   FaToggleOn, FaToggleOff, FaTrash, FaHouse, FaShieldHalved,
   FaChartPie, FaChartBar, FaCheck, FaXmark, FaRightFromBracket,
   FaBriefcase, FaFileArrowDown, FaDollarSign, FaPalette, FaBookmark,
-  FaAngleDown, FaAngleUp, FaCircleInfo,
+  FaAngleDown, FaAngleUp, FaCircleInfo, FaGear, FaBell, FaWandMagicSparkles,
+  FaUserPlus, FaCalendarDays,
 } from 'react-icons/fa6';
 
 const LI_BLUE = '#0A66C2';
@@ -98,10 +99,12 @@ export default function AdminDashboard() {
   };
 
   const navItems = [
-    { id: 'overview',  label: 'Overview',    icon: FaChartBar },
-    { id: 'users',     label: 'Members',     icon: FaUsers },
-    { id: 'palettes',  label: 'Palettes',    icon: FaPalette },
-    { id: 'marketing', label: 'Marketing',   icon: FaArrowTrendUp },
+    { id: 'overview',   label: 'Overview',   icon: FaChartBar },
+    { id: 'users',      label: 'Members',    icon: FaUsers },
+    { id: 'palettes',   label: 'Palettes',   icon: FaPalette },
+    { id: 'marketing',  label: 'Marketing',  icon: FaArrowTrendUp },
+    { id: 'analytics',  label: 'Analytics',  icon: FaChartPie },
+    { id: 'settings',   label: 'Settings',   icon: FaGear },
   ];
 
   const StatCard = ({ icon: Icon, label, value, bg, color, sub }) => (
@@ -529,6 +532,196 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+        {/* ── ANALYTICS ── */}
+        {tab === 'analytics' && stats && (
+          <div>
+            <h1 className="text-xl font-bold mb-5" style={{ color: LI_TEXT }}>Analytics</h1>
+
+            {/* Plan conversion funnel */}
+            <div className="bg-white rounded-xl p-5 mb-5" style={{ border: `1px solid ${LI_BORDER}` }}>
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: LI_TEXT }}>
+                <FaChartBar style={{ color: LI_BLUE }} /> Plan Conversion Funnel
+              </h3>
+              <div className="space-y-4">
+                {[
+                  { label: 'Total Registered', value: stats.totalUsers, color: LI_BLUE, max: stats.totalUsers },
+                  { label: 'Free Plan', value: stats.subscriptions?.free || 0, color: '#868E96', max: stats.totalUsers },
+                  { label: 'Pro Plan', value: stats.subscriptions?.pro || 0, color: '#915907', max: stats.totalUsers },
+                  { label: 'Enterprise', value: stats.subscriptions?.enterprise || 0, color: '#5B4FE8', max: stats.totalUsers },
+                ].map(({ label, value, color, max }) => {
+                  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
+                  return (
+                    <div key={label}>
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-sm font-medium" style={{ color: LI_TEXT }}>{label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold" style={{ color }}>{value}</span>
+                          <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                            style={{ backgroundColor: color + '15', color }}>{pct}%</span>
+                        </div>
+                      </div>
+                      <div className="h-3 rounded-full overflow-hidden" style={{ backgroundColor: '#F3F2EF' }}>
+                        <div className="h-3 rounded-full transition-all duration-700"
+                          style={{ width: `${pct}%`, backgroundColor: color }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Revenue breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+              <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: LI_TEXT }}>
+                  <FaDollarSign style={{ color: '#057642' }} /> Revenue Breakdown
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Monthly (Pro)', value: ((stats.subscriptions?.pro || 0) * 9.99).toFixed(2), color: LI_BLUE },
+                    { label: 'Monthly (Enterprise)', value: ((stats.subscriptions?.enterprise || 0) * 49).toFixed(2), color: '#5B4FE8' },
+                    { label: 'Annual (Pro × 12)', value: ((stats.subscriptions?.pro || 0) * 9.99 * 12).toFixed(2), color: '#057642' },
+                    { label: 'Annual (Enterprise × 12)', value: ((stats.subscriptions?.enterprise || 0) * 49 * 12).toFixed(2), color: '#915907' },
+                  ].map(({ label, value, color }) => (
+                    <div key={label} className="flex justify-between items-center py-2 border-b last:border-0"
+                      style={{ borderColor: LI_BORDER }}>
+                      <span className="text-xs" style={{ color: LI_MUTED }}>{label}</span>
+                      <span className="text-sm font-bold" style={{ color }}>${value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: LI_TEXT }}>
+                  <FaWandMagicSparkles style={{ color: '#7C3AED' }} /> Feature Usage
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Total Palettes Created', value: stats.totalPalettes, icon: FaPalette, color: LI_BLUE },
+                    { label: 'Active Members', value: stats.totalUsers, icon: FaUsers, color: '#057642' },
+                    { label: 'New This Month', value: stats.newThisMonth, icon: FaUserPlus, color: '#915907' },
+                    { label: 'Total Referrals', value: stats.totalReferrals || 0, icon: FaBriefcase, color: '#5B4FE8' },
+                  ].map(({ label, value, icon: Icon, color }) => (
+                    <div key={label} className="flex items-center justify-between py-2 border-b last:border-0"
+                      style={{ borderColor: LI_BORDER }}>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                          style={{ backgroundColor: color + '15' }}>
+                          <Icon size={12} style={{ color }} />
+                        </div>
+                        <span className="text-xs" style={{ color: LI_MUTED }}>{label}</span>
+                      </div>
+                      <span className="text-sm font-bold" style={{ color: LI_TEXT }}>{value ?? '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Growth metrics */}
+            <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
+              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: LI_TEXT }}>
+                <FaArrowTrendUp style={{ color: '#057642' }} /> Key Metrics
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Avg palettes/user', value: stats.totalUsers > 0 ? (stats.totalPalettes / stats.totalUsers).toFixed(1) : '0', color: LI_BLUE },
+                  { label: 'Conversion rate', value: stats.totalUsers > 0 ? `${Math.round(((stats.subscriptions?.pro || 0) + (stats.subscriptions?.enterprise || 0)) / stats.totalUsers * 100)}%` : '0%', color: '#057642' },
+                  { label: 'Enterprise share', value: stats.totalUsers > 0 ? `${Math.round((stats.subscriptions?.enterprise || 0) / stats.totalUsers * 100)}%` : '0%', color: '#5B4FE8' },
+                  { label: 'ARPU (monthly)', value: stats.totalUsers > 0 ? `$${(((stats.subscriptions?.pro || 0) * 9.99 + (stats.subscriptions?.enterprise || 0) * 49) / stats.totalUsers).toFixed(2)}` : '$0', color: '#915907' },
+                ].map(({ label, value, color }) => (
+                  <div key={label} className="rounded-xl p-4 text-center" style={{ backgroundColor: '#F9F9F9' }}>
+                    <p className="text-2xl font-bold mb-1" style={{ color }}>{value}</p>
+                    <p className="text-[11px] leading-tight" style={{ color: LI_MUTED }}>{label}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── SETTINGS ── */}
+        {tab === 'settings' && (
+          <div>
+            <h1 className="text-xl font-bold mb-5" style={{ color: LI_TEXT }}>Admin Settings</h1>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+              {/* App info */}
+              <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: LI_TEXT }}>
+                  <FaCircleInfo style={{ color: LI_BLUE }} /> Application Info
+                </h3>
+                <div className="space-y-0 divide-y" style={{ borderColor: LI_BORDER }}>
+                  {[
+                    { label: 'App Name', value: 'CheckColors' },
+                    { label: 'Version', value: '1.0.0' },
+                    { label: 'Environment', value: import.meta.env.MODE || 'production' },
+                    { label: 'Backend', value: import.meta.env.VITE_API_URL || 'Configured' },
+                    { label: 'AI Provider', value: 'Groq · LLaMA 3.3 70B' },
+                    { label: 'Database', value: 'MongoDB Atlas' },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center justify-between py-3">
+                      <span className="text-sm" style={{ color: LI_MUTED }}>{label}</span>
+                      <span className="text-sm font-medium font-mono" style={{ color: LI_TEXT }}>{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Plan limits */}
+              <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
+                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: LI_TEXT }}>
+                  <FaGear style={{ color: LI_BLUE }} /> Plan Limits
+                </h3>
+                <div className="space-y-3">
+                  {[
+                    { plan: 'Free', palettes: 10, ai: 5, color: '#868E96' },
+                    { plan: 'Pro', palettes: '∞', ai: 100, color: LI_BLUE },
+                    { plan: 'Enterprise', palettes: '∞', ai: '∞', color: '#5B4FE8' },
+                  ].map(({ plan, palettes, ai, color }) => (
+                    <div key={plan} className="rounded-xl p-4" style={{ backgroundColor: '#F9F9F9', border: `1px solid ${LI_BORDER}` }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-bold" style={{ color }}>{plan}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                          style={{ backgroundColor: color + '15', color }}>Active</span>
+                      </div>
+                      <div className="flex gap-4 text-xs" style={{ color: LI_MUTED }}>
+                        <span>Palettes: <b style={{ color: LI_TEXT }}>{palettes}</b></span>
+                        <span>AI/month: <b style={{ color: LI_TEXT }}>{ai}</b></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Danger zone */}
+              <div className="bg-white rounded-xl p-5 lg:col-span-2" style={{ border: `1px solid #CC1016` }}>
+                <h3 className="text-sm font-semibold mb-1 flex items-center gap-2" style={{ color: '#CC1016' }}>
+                  <FaBell style={{ color: '#CC1016' }} /> Danger Zone
+                </h3>
+                <p className="text-xs mb-4" style={{ color: LI_MUTED }}>These actions are irreversible. Proceed with caution.</p>
+                <div className="flex flex-wrap gap-3">
+                  {[
+                    'Clear all AI generation counters',
+                    'Reset all referral rewards',
+                    'Export full database backup',
+                  ].map(action => (
+                    <button key={action}
+                      className="text-xs px-4 py-2 rounded-lg border font-medium transition-colors"
+                      style={{ borderColor: '#CC1016', color: '#CC1016' }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#FFF0F0'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                      onClick={() => alert(`Action: ${action} — connect to backend API`)}>
+                      {action}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </div>
   );

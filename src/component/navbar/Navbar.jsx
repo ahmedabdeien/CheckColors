@@ -3,7 +3,8 @@ import {
   FaBars, FaXmark, FaChevronDown, FaPalette, FaWandMagicSparkles,
   FaRightFromBracket, FaGauge, FaShieldHalved, FaCrown, FaMagnifyingGlass,
   FaEye, FaImage, FaShuffle, FaCircleHalfStroke,
-  FaHouse, FaCircleInfo, FaEnvelope, FaTag, FaFill, FaDroplet, FaGlobe, FaSwatchbook
+  FaHouse, FaCircleInfo, FaEnvelope, FaTag, FaFill, FaDroplet, FaGlobe,
+  FaSwatchbook, FaCheck,
 } from 'react-icons/fa6';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -146,17 +147,21 @@ const Navbar = () => {
           {langOpen && (
             <div className="absolute top-full mt-1 right-0 w-36 bg-white rounded-xl shadow-lg py-2 z-50"
               style={{ border: `1px solid ${LI_BORDER}` }}>
-              {[['en','English','🇺🇸'],['ar','العربية','🇸🇦']].map(([code, name, flag]) => (
+              {[['en','English','EN'],['ar','العربية','ع']].map(([code, name, abbr]) => (
                 <button key={code} onClick={() => switchLang(code)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors"
                   style={{
                     color: i18n.language === code ? LI_BLUE : '#333',
                     backgroundColor: i18n.language === code ? '#EEF3F8' : 'transparent',
                   }}
                   onMouseEnter={e => i18n.language !== code && (e.currentTarget.style.backgroundColor = '#F3F2EF')}
                   onMouseLeave={e => i18n.language !== code && (e.currentTarget.style.backgroundColor = 'transparent')}>
-                  <span>{flag}</span> {name}
-                  {i18n.language === code && <span className="ml-auto text-xs" style={{ color: LI_BLUE }}>✓</span>}
+                  <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    style={{ backgroundColor: i18n.language === code ? LI_BLUE : '#F3F2EF', color: i18n.language === code ? '#fff' : '#666' }}>
+                    {abbr}
+                  </span>
+                  <span className="font-medium">{name}</span>
+                  {i18n.language === code && <FaCheck className="ml-auto text-xs" style={{ color: LI_BLUE }} />}
                 </button>
               ))}
             </div>

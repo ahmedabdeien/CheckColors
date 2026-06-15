@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { FaCopy, FaCheck, FaArrowsLeftRight, FaPlus, FaTrash, FaDownload, FaShuffle } from 'react-icons/fa6';
+import { useTranslation } from 'react-i18next';
 
 const LI_BLUE = '#0A66C2';
 const LI_BG = '#F3F2EF';
@@ -21,6 +22,8 @@ const PRESETS = [
 const randomHex = () => '#' + Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(6, '0');
 
 export default function GradientGenerator() {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
   const [stops, setStops] = useState(['#0A66C2', '#00C6FF']);
   const [type, setType] = useState('linear');
   const [angle, setAngle] = useState(135);
@@ -78,12 +81,12 @@ export default function GradientGenerator() {
   };
 
   return (
-    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }}>
+    <div style={{ backgroundColor: LI_BG, minHeight: '100vh' }} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Header */}
       <div className="bg-white border-b" style={{ borderColor: LI_BORDER }}>
         <div className="max-w-5xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold mb-1" style={{ color: LI_TEXT }}>Gradient Generator</h1>
-          <p className="text-sm" style={{ color: LI_MUTED }}>Create beautiful CSS gradients for your designs</p>
+          <h1 className="text-2xl font-bold mb-1" style={{ color: LI_TEXT }}>{t('gradient.title')}</h1>
+          <p className="text-sm" style={{ color: LI_MUTED }}>{t('gradient.subtitle')}</p>
         </div>
       </div>
 
@@ -97,16 +100,16 @@ export default function GradientGenerator() {
           {/* Left: stops & type */}
           <div className="bg-white rounded-xl p-5 space-y-4" style={{ border: `1px solid ${LI_BORDER}` }}>
             <div>
-              <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>TYPE</p>
+              <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>{t('gradient.type')}</p>
               <div className="flex gap-2">
-                {['linear', 'radial'].map(t => (
-                  <button key={t} onClick={() => setType(t)}
+                {[['linear', t('gradient.linear')], ['radial', t('gradient.radial')]].map(([val, label]) => (
+                  <button key={val} onClick={() => setType(val)}
                     className="flex-1 py-2 rounded-lg text-sm font-medium capitalize transition-colors"
                     style={{
-                      backgroundColor: type === t ? LI_BLUE : '#F3F2EF',
-                      color: type === t ? '#fff' : LI_MUTED,
+                      backgroundColor: type === val ? LI_BLUE : '#F3F2EF',
+                      color: type === val ? '#fff' : LI_MUTED,
                     }}>
-                    {t}
+                    {label}
                   </button>
                 ))}
               </div>
@@ -114,7 +117,7 @@ export default function GradientGenerator() {
 
             {type === 'linear' && (
               <div>
-                <p className="text-xs font-semibold mb-2" style={{ color: LI_MUTED }}>ANGLE — {angle}°</p>
+                <p className="text-xs font-semibold mb-2" style={{ color: LI_MUTED }}>{t('gradient.angle')} — {angle}°</p>
                 <input type="range" min="0" max="360" value={angle} onChange={e => setAngle(+e.target.value)}
                   className="w-full accent-blue-600" />
               </div>
@@ -122,7 +125,7 @@ export default function GradientGenerator() {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-semibold" style={{ color: LI_MUTED }}>COLOR STOPS</p>
+                <p className="text-xs font-semibold" style={{ color: LI_MUTED }}>{t('gradient.stops')}</p>
                 <div className="flex gap-1">
                   <button onClick={reverse} className="p-1.5 rounded hover:bg-gray-100 transition-colors" title="Reverse" style={{ color: LI_MUTED }}>
                     <FaArrowsLeftRight className="text-xs" />
@@ -161,7 +164,7 @@ export default function GradientGenerator() {
           {/* Right: CSS output & actions */}
           <div className="space-y-4">
             <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
-              <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>CSS CODE</p>
+              <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>{t('gradient.copyCss')}</p>
               <div className="rounded-lg p-3 font-mono text-xs break-all" style={{ backgroundColor: '#F3F2EF', color: LI_TEXT }}>
                 {cssCode}
               </div>
@@ -169,7 +172,7 @@ export default function GradientGenerator() {
                 <button onClick={copyCSS}
                   className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold text-white transition-colors"
                   style={{ backgroundColor: copied ? '#057642' : LI_BLUE }}>
-                  {copied ? <><FaCheck /> Copied!</> : <><FaCopy /> Copy CSS</>}
+                  {copied ? <><FaCheck /> {t('gradient.copied')}</> : <><FaCopy /> {t('gradient.copyCss')}</>}
                 </button>
                 <button onClick={randomize}
                   className="p-2.5 rounded-lg transition-colors"
@@ -188,7 +191,7 @@ export default function GradientGenerator() {
 
             {/* Presets */}
             <div className="bg-white rounded-xl p-5" style={{ border: `1px solid ${LI_BORDER}` }}>
-              <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>PRESETS</p>
+              <p className="text-xs font-semibold mb-3" style={{ color: LI_MUTED }}>{t('explore.presets', 'PRESETS')}</p>
               <div className="grid grid-cols-4 gap-2">
                 {PRESETS.map(p => (
                   <button key={p.name} onClick={() => setStops(p.stops)}

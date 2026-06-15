@@ -10,8 +10,74 @@ import {
   FaGear, FaBolt, FaShieldHalved, FaCrown, FaTrash, FaEye,
   FaPlus, FaPalette, FaHouse, FaCircleHalfStroke, FaFill, FaDroplet,
   FaWandMagicSparkles, FaImage, FaShuffle, FaBookmark, FaMagnifyingGlass,
-  FaCheck, FaPen, FaXmark,
+  FaCheck, FaPen, FaXmark, FaArrowRight, FaRocket,
 } from 'react-icons/fa6';
+import { Link as RouterLink } from 'react-router-dom';
+
+const STARTER_PALETTES = [
+  { name: 'Ocean Blue',   colors: ['#03045E','#0077B6','#00B4D8','#90E0EF','#CAF0F8'] },
+  { name: 'Warm Sunset',  colors: ['#03071E','#6A040F','#D00000','#E85D04','#FAA307'] },
+  { name: 'Forest Green', colors: ['#1B4332','#2D6A4F','#40916C','#74C69D','#D8F3DC'] },
+  { name: 'Lavender',     colors: ['#10002B','#3C096C','#7B2FBE','#C77DFF','#E0AAFF'] },
+  { name: 'Minimal Gray', colors: ['#212529','#495057','#868E96','#DEE2E6','#F8F9FA'] },
+  { name: 'Golden Hour',  colors: ['#7B2D00','#D4521A','#F59E0B','#FCD34D','#FFFBEB'] },
+];
+
+function EmptyPalettes({ t }) {
+  return (
+    <div>
+      <div className="rounded-2xl p-6 mb-5 text-center"
+        style={{ background: 'linear-gradient(135deg, #EEF3F8 0%, #F5F0FF 100%)', border: '1px solid #E0DFDC' }}>
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+          style={{ background: 'linear-gradient(135deg, #0A66C2, #7C3AED)' }}>
+          <FaRocket className="text-white text-xl" />
+        </div>
+        <h3 className="font-bold text-base mb-1" style={{ color: '#000000E6' }}>{t('dashboard.noPalettes')}</h3>
+        <p className="text-sm mb-4" style={{ color: '#00000099' }}>
+          {t('dashboard.emptyDesc', 'Generate a palette with AI or pick a starter template below')}
+        </p>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <RouterLink to="/Ai-Colors"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white"
+            style={{ background: 'linear-gradient(135deg, #0A66C2, #7C3AED)' }}>
+            <FaWandMagicSparkles size={12} /> {t('services.aiColors')}
+          </RouterLink>
+          <RouterLink to="/Generate-Palette"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold border"
+            style={{ borderColor: '#0A66C2', color: '#0A66C2', backgroundColor: '#fff' }}>
+            <FaShuffle size={12} /> {t('dashboard.createFirst')}
+          </RouterLink>
+        </div>
+      </div>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#00000099' }}>
+          {t('dashboard.starterTemplates', 'Starter Templates')}
+        </p>
+        <RouterLink to="/explore" className="flex items-center gap-1 text-xs font-semibold" style={{ color: '#0A66C2' }}>
+          {t('dashboard.exploreMore', 'Explore more')} <FaArrowRight size={9} />
+        </RouterLink>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        {STARTER_PALETTES.map(p => (
+          <RouterLink key={p.name} to="/Generate-Palette"
+            className="rounded-xl overflow-hidden group transition-all hover:shadow-md"
+            style={{ border: '1px solid #E0DFDC' }}>
+            <div className="flex" style={{ height: 52 }}>
+              {p.colors.map(c => <div key={c} style={{ flex: 1, backgroundColor: c }} />)}
+            </div>
+            <div className="bg-white px-3 py-2 flex items-center justify-between">
+              <p className="text-xs font-semibold" style={{ color: '#000000E6' }}>{p.name}</p>
+              <span className="text-[10px] flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ color: '#0A66C2' }}>
+                {t('dashboard.useTemplate', 'Use')} <FaArrowRight size={8} />
+              </span>
+            </div>
+          </RouterLink>
+        ))}
+      </div>
+    </div>
+  );
+}
 import CheckColorsLogo from '../../assets/cc-logo.svg';
 
 const LI_BLUE = '#0A66C2';
@@ -323,13 +389,7 @@ export default function Dashboard() {
                     ))}
                   </div>
                 ) : palettes.length === 0 ? (
-                  <div className="text-center py-16">
-                    <FaPalette className="mx-auto text-4xl mb-3" style={{ color: '#B0B0B0' }} />
-                    <p className="text-sm font-medium" style={{ color: LI_MUTED }}>{t('dashboard.noPalettes')}</p>
-                    <Link to="/Generate-Palette" className="text-xs mt-2 inline-block font-semibold" style={{ color: LI_BLUE }}>
-                      {t('dashboard.createFirst')}
-                    </Link>
-                  </div>
+                  <EmptyPalettes t={t} />
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {palettes.map(p => (
