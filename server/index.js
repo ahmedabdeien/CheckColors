@@ -89,5 +89,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'خطأ في الخادم' });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+// Local dev: listen on port. Vercel: export the app as handler
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}

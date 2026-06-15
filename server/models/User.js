@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema({
   },
 
   // Marketing / Referral
-  referralCode: { type: String, unique: true, default: () => uuidv4().slice(0, 8).toUpperCase() },
+  referralCode: { type: String, unique: true, default: () => randomUUID().replace(/-/g, '').slice(0, 8).toUpperCase() },
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   referralCount: { type: Number, default: 0 },
   referralReward: { type: Number, default: 0 }, // days of free Pro
